@@ -11,29 +11,59 @@ Built with **dbt** + **BigQuery SQL** + **Tableau** using CMS DE-SynPUF syntheti
 
 ---
 
-## 🚀 View in 60 Seconds
+## 🚀 How to View in 60 Seconds
 
-**What You'll See:**
-- 7 KPI cards with week-over-week (WoW) deltas in $K format
-- Partial-week banner (auto-hides when data is complete)
-- 52-week trend lines with complete-week annotations
-- Mix stability sentinel (alerts on case-mix shifts)
+### Option 1: Open Tableau Workbook (If Provided)
+```
+1. Open tableau/exec_overview_tab1.twbx in Tableau Desktop 2021.1+
+2. Dashboard auto-loads to Tab 1 (KPI Strip + Trends)
+3. Done — all data embedded in workbook
+```
 
-**Key Innovation:** Automatic complete-week anchoring prevents false WoW spikes from incomplete data streams.
+### Option 2: Connect to BigQuery (Live Data)
+```
+1. Open Tableau Desktop → Connect to BigQuery
+2. Authenticate (OAuth or service account)
+3. Select dataset: rcm_flagship (or your configured dataset)
+4. Add tables:
+   - DS0 (latest week): mart_exec_overview_latest_week
+   - DS1 (52-week trends): mart_exec_kpis_weekly_complete
+5. Open Tab 1 worksheet → drag DS0 fields to KPI cards
+```
 
-**Screenshots:**
+**Critical:** Trends use `mart_exec_kpis_weekly_complete` (DS1_complete) to avoid partial-week artifacts.
+
+### What You'll See
 
 | KPI Strip (7 Cards) | Trend Lines (52 Weeks) | Proxy Tooltip |
 |---------------------|------------------------|---------------|
 | ![KPI Strip](docs/images/kpi-strip.png) | ![Tab 1 Overview](docs/images/tab1.png) | ![Proxy Tooltip](docs/images/proxy-tooltip.png) |
 
+**Dashboard Features:**
+- 7 KPI cards with week-over-week (WoW) deltas in $K format (▲▼—)
+- Partial-week banner (auto-hides when data is complete)
+- 52-week trend lines with complete-week annotations
+- Mix stability sentinel (alerts on case-mix shifts >15%)
+
+**Key Innovation:** Automatic complete-week anchoring prevents false WoW spikes from incomplete data streams.
+
 **Quick Stats:**
-- **1-row snapshot** (DS0) + **52-week series** (DS1)
+- **1-row snapshot** (DS0) + **52-week series** (DS1_complete)
 - **11 automated tests** (5 DS0, 2 DS1, 3 CI/QC, 1 schema)
 - **60-day maturity** enforced upstream (stable payment metrics)
 - **70% volume threshold** for complete-week detection
 
-**Try It:** See [REPRO_STEPS.md](docs/REPRO_STEPS.md) for full reproduction (2-4 hours first-time setup).
+**Full Setup:** See [REPRO_STEPS.md](docs/REPRO_STEPS.md) for complete reproduction (2-4 hours first-time setup with data load).
+
+---
+
+## What Makes This Enterprise-Safe
+
+- **Mature-only enforcement:** 60-day filter prevents velocity artifacts (immature claims excluded)
+- **Partial-week detection:** 70% threshold auto-flags incomplete data (no false spikes)
+- **Directional proxy:** Denied potential allowed = ranking metric only (not guaranteed recovery)
+- **Automated tests:** 11 gates prevent immature contamination, COB leakage, mix drift
+- **Transparent disclosures:** Tooltips state proxy limitations + synthetic data scope
 
 ---
 
