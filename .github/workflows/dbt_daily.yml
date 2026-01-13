@@ -1,0 +1,34 @@
+name: dbt Daily Build
+
+on:
+  schedule:
+    - cron: '0 11 * * *'  # 11:00 UTC daily (6am ET in winter)
+  workflow_dispatch:
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: |
+          pip install dbt-core dbt-postgres
+
+      - name: Set up service account credentials
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.DBT_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$SERVICE_ACCOUNT_JSON" > service_account.json
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt build
+        run: dbt build

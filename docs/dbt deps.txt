@@ -1,0 +1,3 @@
+dbt deps
+dbt debug
+dbt build -s stg_carrier_union stg_carrier_lines_long stg_carrier_lines_enriched
