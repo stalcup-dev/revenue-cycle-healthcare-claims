@@ -1,8 +1,39 @@
 # Revenue Cycle Executive Overview — Tab 1: KPI Strip & Trends
 
+![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?logo=dbt&logoColor=white)
+![BigQuery](https://img.shields.io/badge/BigQuery-SQL-4285F4?logo=googlebigquery&logoColor=white)
+![Tableau](https://img.shields.io/badge/Tableau-Desktop-E97627?logo=tableau&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+
 **Enterprise-grade weekly KPI dashboard with partial-week guardrails and mature-claims maturity rules.**
 
 Built with **dbt** + **BigQuery SQL** + **Tableau** using CMS DE-SynPUF synthetic claims data.
+
+---
+
+## 🚀 View in 60 Seconds
+
+**What You'll See:**
+- 7 KPI cards with week-over-week (WoW) deltas in $K format
+- Partial-week banner (auto-hides when data is complete)
+- 52-week trend lines with complete-week annotations
+- Mix stability sentinel (alerts on case-mix shifts)
+
+**Key Innovation:** Automatic complete-week anchoring prevents false WoW spikes from incomplete data streams.
+
+**Screenshots:**
+
+| KPI Strip (7 Cards) | Trend Lines (52 Weeks) | Proxy Tooltip |
+|---------------------|------------------------|---------------|
+| ![KPI Strip](docs/images/kpi-strip.png) | ![Tab 1 Overview](docs/images/tab1.png) | ![Proxy Tooltip](docs/images/proxy-tooltip.png) |
+
+**Quick Stats:**
+- **1-row snapshot** (DS0) + **52-week series** (DS1)
+- **11 automated tests** (5 DS0, 2 DS1, 3 CI/QC, 1 schema)
+- **60-day maturity** enforced upstream (stable payment metrics)
+- **70% volume threshold** for complete-week detection
+
+**Try It:** See [REPRO_STEPS.md](docs/REPRO_STEPS.md) for full reproduction (2-4 hours first-time setup).
 
 ---
 
@@ -13,8 +44,6 @@ Single-page executive dashboard providing stable week-over-week (WoW) metrics fo
 - **KPI Strip (DS0):** 7 headline metrics anchored to latest *complete* week (no partial-week artifacts)
 - **Trend Lines (DS1):** 52-week historical series with complete-week flagging
 - **Operational Guardrails:** Mix stability sentinel, partial-week banner, maturity-period enforcement
-
-![Tab 1 Overview](docs/images/tab1.png)
 
 ---
 
