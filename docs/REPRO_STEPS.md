@@ -180,8 +180,8 @@ rcm_flagship:
     dev:
       type: bigquery
       method: oauth  # Or service-account for CI/CD
-      project: rcm-analytics  # Your GCP project ID
-      dataset: rcm            # BigQuery dataset name
+      project: your-gcp-project-id  # Replace with YOUR GCP project ID
+      dataset: your-dataset          # Replace with YOUR BigQuery dataset name
       threads: 4
       timeout_seconds: 300
       location: US

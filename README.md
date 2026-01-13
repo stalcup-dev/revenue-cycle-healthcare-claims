@@ -4,8 +4,12 @@
 ![BigQuery](https://img.shields.io/badge/BigQuery-SQL-4285F4?logo=googlebigquery&logoColor=white)
 ![Tableau](https://img.shields.io/badge/Tableau-Desktop-E97627?logo=tableau&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-11%2F11%20Passing-success)
 
 **Enterprise-grade weekly KPI dashboard with partial-week guardrails and mature-claims maturity rules.**
+
+**Quick Links:** [📊 View Dashboard](docs/images/tab1.png) • [🎯 STAR Impact](portfolio/STAR_IMPACT_SUMMARY.md) • [🔧 Setup Guide](docs/REPRO_STEPS.md) • [📖 Metric Definitions](docs/01_metric_definitions.md)
 
 Built with **dbt** + **BigQuery SQL** + **Tableau** using CMS DE-SynPUF synthetic claims data.
 
@@ -24,7 +28,7 @@ Built with **dbt** + **BigQuery SQL** + **Tableau** using CMS DE-SynPUF syntheti
 ```
 1. Open Tableau Desktop → Connect to BigQuery
 2. Authenticate (OAuth or service account)
-3. Select dataset: rcm_flagship (or your configured dataset)
+3. Select dataset: your-dataset (configured in dbt profiles.yml)
 4. Add tables:
    - DS0 (latest week): mart_exec_overview_latest_week
    - DS1 (52-week trends): mart_exec_kpis_weekly_complete

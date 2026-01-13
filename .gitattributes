@@ -1,0 +1,35 @@
+# Git attributes for language detection and diff display
+
+# SQL files
+*.sql linguist-language=SQL
+
+# Markdown files
+*.md linguist-detectable=true
+
+# YAML files
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+
+# Python files
+*.py linguist-language=Python
+
+# Ignore generated files from language stats
+target/** linguist-generated=true
+dbt_packages/** linguist-vendored=true
+logs/** linguist-generated=true
+.venv/** linguist-vendored=true
+
+# Line ending normalization
+* text=auto
+*.sql text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.pdf binary
+*.twbx binary
+*.hyper binary

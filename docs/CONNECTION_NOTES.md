@@ -47,8 +47,8 @@ rcm_flagship:
     dev:
       type: bigquery
       method: oauth  # Uses gcloud auth
-      project: rcm-analytics  # Replace with YOUR project ID
-      dataset: rcm
+      project: your-gcp-project-id  # Replace with YOUR GCP project ID
+      dataset: your-dataset           # Replace with YOUR dataset name
       threads: 4
       location: US
 ```
