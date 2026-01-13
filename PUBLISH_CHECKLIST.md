@@ -54,6 +54,70 @@
 
 ---
 
+## Pre-Push Guardrails (New) ✅
+
+### Data Hygiene Checks:
+- [x] **Run size gate:**
+  ```powershell
+  .\scripts\pre_push_size_gate.ps1
+  # Expected: ✅ GATE PASSED — Safe to push
+  ```
+
+- [x] **Verify no secrets:**
+  ```powershell
+  git diff --cached | Select-String -Pattern "service.*account|credentials|\.json\.key|password|api.*key"
+  # Expected: No matches
+  ```
+
+- [x] **Verify no large CSVs:**
+  ```powershell
+  git ls-files | Select-String "\.csv$"
+  # Expected: No matches (or only small samples < 1MB)
+  ```
+
+### Model Validation:
+- [x] **Confirm dbt models compile:**
+  ```powershell
+  dbt compile
+  # Expected: Completed successfully
+  ```
+
+- [x] **Confirm all tests pass:**
+  ```powershell
+  dbt test
+  # Expected: 11/11 passing (5 DS0, 2 DS1, 3 CI/QC, 1 schema)
+  ```
+
+- [x] **Confirm DS1 uses *_weekly_complete:**
+  ```powershell
+  grep -r "mart_exec_kpis_weekly[^_]" models/**/*.sql
+  # Expected: No matches (all should use _weekly_complete suffix)
+  ```
+
+### Documentation Checks:
+- [x] **Confirm README images render:**
+  ```powershell
+  # Check files exist
+  Test-Path docs/images/tab1.png
+  Test-Path docs/images/kpi-strip.png
+  Test-Path docs/images/proxy-tooltip.png
+  # Expected: All True
+  ```
+
+- [x] **Confirm data policy referenced:**
+  ```powershell
+  Select-String -Path README.md -Pattern "DATA_POLICY"
+  # Expected: Match found in Data Lineage section
+  ```
+
+- [x] **Confirm DS1_complete usage requirement present:**
+  ```powershell
+  Select-String -Path docs/02_data_contract_ds0_ds1.md -Pattern "CRITICAL REQUIREMENT"
+  # Expected: Match found (2 occurrences)
+  ```
+
+---
+
 ## Screenshot Validation ✅
 
 ### Required Screenshots (Already Exist Locally):

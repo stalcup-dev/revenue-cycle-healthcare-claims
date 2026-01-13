@@ -65,7 +65,32 @@ service-account-*.json
 Thumbs.db
 .DS_Store
 
-# Data files (optional, uncomment if not tracking raw data)
-# *.csv
-# *.parquet
-# *.feather
+# Raw Data Files (DO NOT COMMIT — See docs/DATA_POLICY.md)
+# CMS DE-SynPUF and other large datasets
+*.csv
+*.zip
+*.gz
+*.parquet
+*.feather
+*.xlsx
+*.xls
+data/
+data_local/
+raw_data/
+datasets/
+DE1_*.csv
+
+# dbt compilation artifacts
+compiled/
+run/
+dbt.log
+
+# Tableau local artifacts
+*.tde
+*.tds.bak
+*.twb.bak
+Tableau Workbook (Auto Recovery)/
+
+# BigQuery credentials (redundant with earlier section, but explicit)
+profiles.yml
+# Keep dbt_project.yml but exclude personal profiles

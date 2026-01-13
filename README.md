@@ -248,6 +248,9 @@ mart_exec_kpis_weekly_complete (weekly aggregates, complete weeks only)
 
 **Maturity Filter Applied:** `stg_carrier_lines_enriched` enforces 60-day service date filter before all aggregations.
 
+**📊 Data Acquisition:**  
+Raw CMS DE-SynPUF datasets are **not stored in this repository** due to size constraints (files exceed 100MB). See [docs/DATA_POLICY.md](docs/DATA_POLICY.md) for download instructions and local storage recommendations. For step-by-step reproduction, see [docs/REPRO_STEPS.md](docs/REPRO_STEPS.md).
+
 ---
 
 ## Limitations & Disclosures
