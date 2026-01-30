@@ -1,5 +1,5 @@
 # Executive Summary (Latest Complete + Mature Week)
-- WoW change: Observed Paid down $0.1K
+- WoW change: Observed Paid down $57.6K
 - Moved: Denial rate 13.4% (Delta +0.9pp)
 - Watch: Mix stability flagged - Volume shift: Claim count 20.9% vs 8-week median
 ## Data Stamp (Receipt)
@@ -10,7 +10,7 @@ Included weeks: complete-week only (DS1)
 Service timeline (complete weeks): 2009-12-21 to 2010-12-20
 Maturity: 60
 Mix stability: CHECK SEGMENTS - Volume shift: Claim count 20.9% vs 8-week median
-Generated on: 2026-01-29 20:24:59
+Generated on: 2026-01-30 08:17:44
 ## Partial Week Banner
 WARNING: Partial-week activity detected (Start: 2010-12-27, Claims: 5,612).
 Exec KPIs and trends reflect complete + mature weeks only. Partial-week is excluded from KPI comparisons.
