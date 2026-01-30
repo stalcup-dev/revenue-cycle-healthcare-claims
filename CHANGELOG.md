@@ -54,6 +54,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## NB-03 Exec Overview Artifact (Docs + Images)
+
+- Shipped NB-03 exec-safe artifact outputs:
+  - docs/executive_summary.md (ASCII-safe, stamped, guardrails + QC snapshot)
+  - docs/images/nb03_trends_grid.png (13-week trends grid + 4-week rolling avg disclosure)
+  - docs/images/nb03_kpi_strip.png (KPI strip render for one-glance exec review)
+- Fixed summary delta alignment: Observed Paid WoW bullet matches KPI table row (commit a5763d6).
+- Restored repo publish gate reliability: scripts/pre_push_size_gate.ps1 parses/runs cleanly (commit 7015bf6).
+
+
 ### Planned
 - **Tab 2**: Provider-Level Workqueue (denial detail drill-down)
 - **Tab 3**: PRCSG Denial Taxonomy (action-oriented pareto analysis)
