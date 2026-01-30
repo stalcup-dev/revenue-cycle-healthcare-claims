@@ -35,3 +35,10 @@ b03_exec_overview_artifact.ipynb
 ## Acceptance Criteria
 - `README.md` contains this section verbatim.
 - No other files modified.
+
+### NB-05 ? Workqueue Story (marts-only)
+- Notebook: `nb05_workqueue_story.ipynb`
+- Outputs: `workqueue_memo_latest_week.md`, `nb05_workqueue_top25.png`
+- Purpose: Decision-ready snapshot of top at-risk workqueue items (Top 25), generated from marts-only sources.
+- Data: DS3 required; DS0 optional.
+
