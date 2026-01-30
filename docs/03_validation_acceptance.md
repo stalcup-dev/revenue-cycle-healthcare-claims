@@ -387,3 +387,49 @@ dbt test --select mart_exec_overview_latest_week
 
 **Last Updated:** 2026-01-13  
 **Test Coverage:** 11 automated tests + 3 manual QC checks
+
+## NB-03 Artifact Acceptance Checks (Exec Overview)
+
+These checks confirm NB-03 is recruiter-safe and internally consistent.
+
+### A) ASCII-only markdown (no mojibake)
+```powershell
+# should return NOTHING
+Select-String -Path docs\executive_summary.md -Pattern '[^ -]' -AllMatches
+
+# should print: ASCII OK
+python -c "open('docs/executive_summary.md','rb').read().decode('ascii') and print('ASCII OK')"
+```
+
+B) Expected artifacts exist
+dir docs\executive_summary.md
+dir docs\images
+b03_trends_grid.png
+dir docs\images
+b03_kpi_strip.png
+
+C) Markdown embeds point to docs/images/
+
+Confirm these exact lines exist in docs/executive_summary.md:
+
+D) Summary delta matches KPI row delta (Observed Paid WoW)
+Select-String -Path docs\executive_summary.md -Pattern "WoW change: Observed Paid" -Context 0,0
+Select-String -Path docs\executive_summary.md -Pattern "\| Observed Paid \|" -Context 0,0
+
+
+Acceptance: The numeric WoW value matches in both places (example: down $57.6K == -$57.6K).
+
+E) Partial-week banner is coherent when present
+
+If "Partial Week Banner" appears, it must contain:
+
+WARNING: Partial-week activity detected (Start: <date>, Claims: <n>).
+
+Statement that exec KPIs/trends reflect complete + mature weeks only and partial-week is excluded from KPI comparisons.
+
+
+## Acceptance Criteria
+- Section exists verbatim.
+- Commands run without edits.
+- Only `docs/03_validation_acceptance.md` changed.
+
