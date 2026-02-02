@@ -12,10 +12,9 @@
 - Model as_of_date (from marts): 2026-01-07
 - Anchor week: 2010-12-20
 - Comparator: 2010-12-13
-- Service timeline (complete weeks): 2009-12-21 to 2010-12-20 (53 weeks)
+- Service timeline (complete weeks): 2010-10-04 to 2010-12-20 (12 weeks)
 - Included weeks: complete-week only (DS1); mature-only enforced upstream
 - Mix stability: CHECK SEGMENTS - Volume shift: Claim count 20.9% vs 8-week median
-- Generated on: 2026-01-30 12:40:35
 
 ## Notes / interpretation status
 - Interpretation status: INVESTIGATE - Volume shift: Claim count 20.9% vs 8-week median
