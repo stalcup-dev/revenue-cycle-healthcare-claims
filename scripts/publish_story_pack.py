@@ -24,11 +24,8 @@ def main() -> int:
             "notebook",
             "--inplace",
             str(nb),
-            "--ExecutePreprocessor.cwd=.",
         ]
-        result = subprocess.run(cmd, cwd=repo_root)
-        if result.returncode != 0:
-            return result.returncode
+        subprocess.run(cmd, cwd=repo_root, check=True)
 
     print("PUBLISH_OK")
     return 0
