@@ -96,3 +96,6 @@ Tableau Workbook (Auto Recovery)/
 # BigQuery credentials (redundant with earlier section, but explicit)
 profiles.yml
 # Keep dbt_project.yml but exclude personal profiles
+
+# Temporary execution artifacts
+.tmp/
