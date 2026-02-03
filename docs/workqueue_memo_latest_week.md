@@ -9,10 +9,9 @@ This is a prioritization demo built from DS3 marts outputs. It is not a guarante
 - Top N shown: 25
 - Capacity assumption: 250/day
 - Source: mart_workqueue_claims (DS3)
-- Generated on: 2026-02-02 16:05:08
 
 ## Queue preview (Top N)
-Top 25 at-risk: $2,100 (0.00% of total $115,112,420)
+Top 25 at-risk: $52,910 (0.05% of total $115,112,420)
 ![Workqueue Top N](images/nb05_workqueue_top25.png)
 
 ## How to use this
