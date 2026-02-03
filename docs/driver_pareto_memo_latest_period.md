@@ -8,7 +8,6 @@ Contribution/composition view from DS2 marts. This does not establish causality.
 - Anchor week (if DS0 available): 2010-12-20
 - Metric basis: Denied Potential Allowed Proxy (directional prioritization only)
 - Source: mart_denial_pareto (DS2)
-- Generated on: 2026-02-02 16:05:02
 
 ## Top drivers (contribution)
 - Top driver: Noncovered | Coverage verification - 60.0% of period total

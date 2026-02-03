@@ -7,6 +7,8 @@ from pathlib import Path
 
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
+    out_dir = repo_root / ".tmp" / "nbconvert_out"
+    out_dir.mkdir(parents=True, exist_ok=True)
     notebooks = [
         repo_root / "notebooks" / "nb01_metric_lineage_audit.ipynb",
         repo_root / "notebooks" / "nb03_exec_overview_artifact.ipynb",
@@ -15,6 +17,7 @@ def main() -> int:
     ]
 
     for nb in notebooks:
+        out_name = f"{nb.stem}__executed.ipynb"
         cmd = [
             sys.executable,
             "-m",
@@ -22,7 +25,10 @@ def main() -> int:
             "--execute",
             "--to",
             "notebook",
-            "--inplace",
+            "--output-dir",
+            str(out_dir),
+            "--output",
+            out_name,
             str(nb),
         ]
         subprocess.run(cmd, cwd=repo_root, check=True)
