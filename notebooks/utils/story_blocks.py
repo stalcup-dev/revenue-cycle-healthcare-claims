@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
+import os
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
@@ -10,9 +11,19 @@ def _fmt_date(d) -> str:
     # pandas Timestamp, datetime, date all ok
     return str(getattr(d, "date", lambda: d)()).split(" ")[0] if hasattr(d, "date") else str(d).split(" ")[0]
 
+def _fmt_timestamp(d: datetime) -> str:
+    return d.strftime("%Y-%m-%d %H:%M:%S")
+
 def _ascii(s: str) -> str:
     s.encode("ascii")  # hard fail if non-ascii
     return s
+
+def generated_on_line(generated_on: Optional[datetime] = None, enabled: Optional[bool] = None) -> str:
+    include = enabled if enabled is not None else (os.getenv("INCLUDE_GENERATED_ON") == "1")
+    if not include:
+        return ""
+    gen = generated_on or datetime.now()
+    return _ascii(f"Generated on: {_fmt_timestamp(gen)}")
 
 @dataclass
 class Receipt:
@@ -33,7 +44,6 @@ def build_receipt(
     included_weeks: str = "complete + mature only (marts flags)",
     generated_on: Optional[datetime] = None,
 ) -> str:
-    gen = generated_on or datetime.now()
     n = n_complete_weeks
     window = f"last {n} complete weeks available (target {target_complete_weeks})" if n is not None else f"last N complete weeks available (target {target_complete_weeks})"
     lines = [
@@ -43,8 +53,10 @@ def build_receipt(
         f"- Comparator: {_fmt_date(comparator_week)}",
         f"- Included weeks: {included_weeks}",
         f"- Window: {window}",
-        f"- Generated on: {_fmt_date(gen)}",
     ]
+    gen_line = generated_on_line(generated_on)
+    if gen_line:
+        lines.append(f"- {gen_line}")
     return _ascii("\n".join(lines))
 
 def compute_interpretation_status(
