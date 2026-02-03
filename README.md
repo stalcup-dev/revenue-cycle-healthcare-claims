@@ -11,27 +11,11 @@
 
 **Quick Links:** [📊 View Dashboard](docs/images/tab1.png) • [🎯 STAR Impact](portfolio/STAR_IMPACT_SUMMARY.md) • [🔧 Setup Guide](docs/REPRO_STEPS.md) • [📖 Metric Definitions](docs/01_metric_definitions.md)
 
-## Start here (Hiring manager: 90 seconds)
-
-This repo showcases **executive-grade analytics**: turning noisy weekly KPI movement into an explicit **decision**, with guardrails and next-step ownership.
-
-**Read in this order:**
-1) Executive Summary (what changed ? so what ? next 7 days)  
-   - docs/executive_summary.md
-2) Decision Memo (decision ? why ? options/tradeoffs ? owners)  
-   - docs/decision_memo_latest_complete_week.md
-3) 90-second interview walkthrough (script + router)  
-   - docs/INTERVIEW_WALKTHROUGH_90S.md
-4) Story pages (visual-first, 3-minute flow)  
-   - docs/story/README.md  
-   - NB-03 Exec Overview: docs/story/nb03_exec_overview.md  
-   - NB-04 Drivers: docs/story/nb04_driver_pareto.md  
-   - NB-05 Workqueue: docs/story/nb05_workqueue.md
-
-
-## Start Here (Visual-First)
-Open: `docs/story/README.md`  
-This is the recruiter-friendly walkthrough: Trust Layer -> Exec Overview -> Drivers -> Workqueue.
+## Start Here (2-minute path)
+- docs/CASE_STUDY_ONE_PAGER.md
+- docs/executive_summary.md
+- docs/decision_memo_latest_complete_week.md
+- docs/story/README.md
 
 ## Architecture (what this project demonstrates)
 Production path: BigQuery (warehouse) -> dbt (marts) -> Tableau dashboards + Jupyter storytelling notebooks.
