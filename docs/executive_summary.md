@@ -1,7 +1,16 @@
 # Executive Summary (Latest Complete + Mature Week)
-- WoW change: Observed Paid down $57.6K
+Decision: Hold queue expansion; validate mix shift before actioning capacity.
+Confidence: Low - mix stability flagged, partial-week present, only 12 complete weeks of history.
+What changed:
+- Observed Paid down $57.6K WoW
+- Payer Allowed down $55.1K WoW
 - Denial rate 13.4% (Delta +0.9pp)
-- Watch: Mix stability flagged - Volume shift: Claim count 20.9% vs 8-week median
+So what:
+- Mix instability plus partial-week activity make WoW signal fragile; treat KPIs as directional only.
+Next 7 days:
+- Analytics owner: run NB-04 driver pareto; output: top contributors + concentration share.
+- Ops owner: hold queue expansion; output: capacity decision memo after mix validation.
+- RevCycle lead: review partial-week volume and comparator validity; output: go/no-go on queue expansion.
 ## Data Stamp (Receipt)
 Model as_of_date (from marts): 2026-01-07
 Anchor week: 2010-12-20
@@ -26,7 +35,8 @@ Comparator: prior complete week
 | Payer Allowed | $733.4K | $K | -$55.1K |
 | Observed Paid | $713.7K | $K | -$57.6K |
 | Claim Count | 8,171 | count | -572 |
-| Recoupment | $0.0K | $K | -- |
+| Recoupment | N/A |  | N/A |
+Recoupment is N/A because it is NULL/0 across the complete-week window.
 ## Trends (Last 13 Complete Weeks)
 Trends include 4-week rolling average to reduce volatility.
 ![Trends Grid](images/nb03_trends_grid.png)
