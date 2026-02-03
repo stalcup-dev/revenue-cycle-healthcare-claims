@@ -68,6 +68,7 @@ Thumbs.db
 # Raw Data Files (DO NOT COMMIT — See docs/DATA_POLICY.md)
 # CMS DE-SynPUF and other large datasets
 *.csv
+!docs/fixtures/*.csv
 *.zip
 *.gz
 *.parquet
@@ -79,6 +80,7 @@ data_local/
 raw_data/
 datasets/
 DE1_*.csv
+!docs/fixtures/*.csv
 
 # dbt compilation artifacts
 compiled/
