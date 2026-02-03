@@ -12,6 +12,8 @@ This is a prioritization demo built from DS3 marts outputs. It is not a guarante
 
 ## Queue preview (Top N)
 Top 25 at-risk: $52,910 (0.05% of total $115,112,420)
+Queue is sized for throughput + learning loop; dollar share is not the only objective (cycle time + prevention).
+Heuristic recoverable (Top 25) = $1,450 (at_risk * p_denial * 0.2)
 ![Workqueue Top N](images/nb05_workqueue_top25.png)
 
 ## How to use this

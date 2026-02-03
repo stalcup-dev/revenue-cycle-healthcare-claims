@@ -8,6 +8,8 @@ Operational prioritization demo using proxy ranking (not guaranteed recovery).
 
 ## Context
 Top 25 at-risk: $52,910 (0.05% of total $115,112,420)
+Queue is sized for throughput + learning loop; dollar share is not the only objective (cycle time + prevention).
+Heuristic recoverable (Top 25) = $1,450 (at_risk * p_denial * 0.2)
 
 ## Capacity framing
 | Capacity (items/day) | Days for Top-25 |

@@ -11,9 +11,11 @@
 
 **Quick Links:** [📊 View Dashboard](docs/images/tab1.png) • [🎯 STAR Impact](portfolio/STAR_IMPACT_SUMMARY.md) • [🔧 Setup Guide](docs/REPRO_STEPS.md) • [📖 Metric Definitions](docs/01_metric_definitions.md)
 
-## Start Here (Visual-First)
-Open: `docs/story/README.md`  
-This is the recruiter-friendly walkthrough: Trust Layer -> Exec Overview -> Drivers -> Workqueue.
+## Start Here (2-minute path)
+- docs/CASE_STUDY_ONE_PAGER.md
+- docs/executive_summary.md
+- docs/decision_memo_latest_complete_week.md
+- docs/story/README.md
 
 ## Architecture (what this project demonstrates)
 Production path: BigQuery (warehouse) -> dbt (marts) -> Tableau dashboards + Jupyter storytelling notebooks.

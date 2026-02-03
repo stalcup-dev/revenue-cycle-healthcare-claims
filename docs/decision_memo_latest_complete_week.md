@@ -1,21 +1,26 @@
 # Decision Memo - Exec Overview (Latest Complete + Mature Week)
 
 ## Decision
-Decision: Hold queue expansion; validate mix shift before actioning capacity.
+Decision: Hold queue expansion; validate volume shift before actioning capacity.
+
+Status: LIMITED_CONTEXT
+Reason: volume shift flagged (>15% vs rolling 8-week median); partial-week risk HIGH (5,612 vs 8,171, 68.7%); history tier 12w (LIMITED_CONTEXT); comparator present
+When LIMITED_CONTEXT: take reversible actions (validate, segment, triage) and defer staffing/process changes until comparator validity is confirmed.
+Partial-week risk: HIGH (5,612 vs 8,171, 68.7%)
+
+## Truth Stamp
+Anchor (week definition): Service date (clinical perspective).
+Maturity (LMW): We report only the latest complete week selected by the upstream "mature-only" filter; partial/incomplete weeks are excluded from KPIs and flagged when present.
+Interpretation note: Service-date trends reflect care timing and coding; posting-date trends may differ.
 
 ## Why
 - Observed Paid down $57.6K WoW
 - Denial Rate 13.4% (Delta +0.9pp)
 
-## Options + tradeoffs
-- Option A (Hold + investigate): choose when mix stability flagged or partial-week present or comparator missing or history < 52; tradeoff is slower throughput until mix is validated.
-- Option B (Proceed to queue): choose when mix stability is OK, no partial-week activity, comparator present, and history is sufficient; tradeoff is exposure to false positives if instability emerges.
-- Option C (Escalate): choose when mix is CHECK SEGMENTS and partial-week present in the same week, or when comparator is missing and denial rate is rising; tradeoff is delaying queue until drivers are confirmed.
-
-## Owner checklist + outputs
-- Analytics owner: run NB-04 drivers; output: top contributors and concentration for this period.
-- Ops owner: decide queue capacity hold or release; output: capacity decision memo.
-- RevCycle lead: validate partial-week effect and comparator validity; output: go/no-go for NB-05.
+## Options (exec choices, 7-day)
+- Validate (24-48h): Analytics/BI + Billing Ops; output: segment deltas + maturity/comparator check.
+- Denial containment (1 week): Denials Management; output: top denial categories/payers + prevention candidates.
+- Underpayment probe / yield-gap (1 week): Contracting / Payment Integrity; output: suspect list + follow-up queue + heuristic recoverable estimate.
 
 ## Guardrails
 - Drivers show contribution/composition, not causality.
@@ -30,4 +35,5 @@ Decision: Hold queue expansion; validate mix shift before actioning capacity.
 - Mix stability: CHECK SEGMENTS - Volume shift: Claim count 20.9% vs 8-week median
 
 ## Interpretation status (operational)
-- Interpretation status: INVESTIGATE - mix stability flagged; partial-week present; only 12 complete weeks of history
+Status: LIMITED_CONTEXT
+Reason: volume shift flagged (>15% vs rolling 8-week median); partial-week risk HIGH (5,612 vs 8,171, 68.7%); history tier 12w (LIMITED_CONTEXT); comparator present
