@@ -379,7 +379,7 @@ ORDER BY ordinal_position;
 ### mart_exec_overview_latest_week (DS0)
 - Grain: single row (latest complete week).
 - Required keys: week_start (single row output).
-- Schema source: docs/02_data_contract_ds0_ds1.md and models/marts/mart_exec_overview_latest_week.sql.
+- Schema source: docs/tech/02_data_contract_ds0_ds1.md and models/marts/mart_exec_overview_latest_week.sql.
 
 | Column | Type | Source |
 | --- | --- | --- |
@@ -430,7 +430,7 @@ Top 10 most used columns: not inferred (no Tableau workbook in repo; only tablea
 ### mart_exec_kpis_weekly_complete (DS1)
 - Grain: weekly (one row per week, complete and partial flagged).
 - Required keys: week_start.
-- Schema source: models/marts/mart_exec_kpis_weekly_complete.sql and docs/02_data_contract_ds0_ds1.md.
+- Schema source: models/marts/mart_exec_kpis_weekly_complete.sql and docs/tech/02_data_contract_ds0_ds1.md.
 
 Columns from mart_exec_kpis_weekly (base):
 | Column | Type | Source |

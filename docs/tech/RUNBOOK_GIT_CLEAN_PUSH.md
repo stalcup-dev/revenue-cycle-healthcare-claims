@@ -122,7 +122,7 @@ git commit -m "v0.9.1: Revenue cycle Tab 1 (datasets excluded per DATA_POLICY.md
 - KPI strip with partial-week guardrails
 - Complete-week anchoring logic
 - WoW standardization ($K format)
-- Raw datasets excluded from repo (see docs/DATA_POLICY.md)
+- Raw datasets excluded from repo (see docs/tech/DATA_POLICY.md)
 "
 ```
 

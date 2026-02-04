@@ -431,5 +431,5 @@ Statement that exec KPIs/trends reflect complete + mature weeks only and partial
 ## Acceptance Criteria
 - Section exists verbatim.
 - Commands run without edits.
-- Only `docs/03_validation_acceptance.md` changed.
+- Only `docs/tech/03_validation_acceptance.md` changed.
 

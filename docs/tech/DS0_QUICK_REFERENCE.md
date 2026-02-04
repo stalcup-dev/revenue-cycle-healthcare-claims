@@ -202,7 +202,7 @@ DS0 pulls from:
 ## 📞 Support
 
 For questions about DS0 metrics or calculations, see:
-- **Metric Dictionary:** `docs/metric_dictionary.md`
+- **Metric Dictionary:** `docs/tech/metric_dictionary.md`
 - **Implementation Details:** `DS0_IMPLEMENTATION_SUMMARY.md`
 - **Operational Playbook:** `docs/workqueue_playbook.md`
 

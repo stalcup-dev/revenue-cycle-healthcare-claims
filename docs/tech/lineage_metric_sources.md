@@ -1,6 +1,6 @@
 # Metric Lineage Audit (NB-01)
 
-Generated on: 2026-01-30 11:28:51
+Generated on: 2026-01-31 13:39:14
 Inputs: dbt target/manifest.json (and/or target/graph artifacts if used)
 Scope: DS0 + DS1 exec overview metrics only (no DS2/DS3)
 

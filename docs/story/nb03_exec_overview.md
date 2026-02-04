@@ -3,6 +3,8 @@
 ## What this is
 A weekly exec-safe snapshot using marts-only DS0/DS1 (complete + mature weeks). No causal claims.
 
+Decision lever: If INVESTIGATE, resolve mix/volume shifts before allocating workqueue capacity.
+
 ## Quick links
 - Executive summary: ../executive_summary.md
 - Decision memo: ../decision_memo_latest_complete_week.md

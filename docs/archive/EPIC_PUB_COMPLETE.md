@@ -33,7 +33,7 @@ git push -u origin main
    - `DE1_*.csv` (explicit CMS file pattern)
    - Tableau local artifacts (`.tde`, `.hyper`, auto-recovery)
 
-2. **`docs/DATA_POLICY.md`** — Complete data governance document:
+2. **`docs/tech/DATA_POLICY.md`** — Complete data governance document:
    - Why datasets not in repo (size + licensing clarity)
    - Where to store data locally (outside repo: `../data_local/cms_synpuf/`)
    - How to download from CMS (direct links + license info)
@@ -54,7 +54,7 @@ git push -u origin main
 ### PUB-02: Git History Cleanup Runbook ✅
 
 **Files Created:**
-1. **`docs/RUNBOOK_GIT_CLEAN_PUSH.md`** — Complete Windows runbook:
+1. **`docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md`** — Complete Windows runbook:
    - **Path A: Soft Reset** (< 10 commits, simple)
    - **Path B: git-filter-repo** (many commits, surgical removal)
    - Decision tree for which path to use
@@ -83,7 +83,7 @@ git push -u origin main
 ### PUB-03: Reproducibility Documentation ✅
 
 **Files Created:**
-1. **`docs/REPRO_STEPS.md`** — Complete reproduction guide:
+1. **`docs/tech/REPRO_STEPS.md`** — Complete reproduction guide:
    - **Step 1:** Data acquisition (CMS download links)
    - **Step 2:** Local storage (outside repo structure)
    - **Step 3:** BigQuery setup (GCP project + dataset creation)
@@ -94,7 +94,7 @@ git push -u origin main
    - Time estimates: 2-4 hours first-time, 5-10 min subsequent
    - Troubleshooting section for common issues
 
-2. **`docs/CONNECTION_NOTES.md`** — Enterprise-safe auth guidance:
+2. **`docs/tech/CONNECTION_NOTES.md`** — Enterprise-safe auth guidance:
    - **BigQuery:** OAuth (local dev), service account (CI/CD), ADC (GCP-hosted)
    - **Tableau:** OAuth (interactive), service account (server), public extract (Tableau Public)
    - No credentials committed principle
@@ -143,10 +143,10 @@ git push -u origin main
 ## Files Created Summary
 
 ### Documentation (5 files):
-- `docs/DATA_POLICY.md` — Why datasets excluded + where to store
-- `docs/REPRO_STEPS.md` — Full reproduction guide (7 steps)
-- `docs/CONNECTION_NOTES.md` — Auth options (no secrets)
-- `docs/RUNBOOK_GIT_CLEAN_PUSH.md` — Git history cleanup (2 paths)
+- `docs/tech/DATA_POLICY.md` — Why datasets excluded + where to store
+- `docs/tech/REPRO_STEPS.md` — Full reproduction guide (7 steps)
+- `docs/tech/CONNECTION_NOTES.md` — Auth options (no secrets)
+- `docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md` — Git history cleanup (2 paths)
 - `PUBLISH_CHECKLIST.md` — Updated with pre-push guardrails
 
 ### Scripts (3 files):
@@ -177,15 +177,15 @@ git status  # Should NOT show CSV files as staged
 ### Step 2: Commit the Removal
 ```powershell
 git add .gitignore
-git add docs/DATA_POLICY.md
-git add docs/REPRO_STEPS.md
-git add docs/CONNECTION_NOTES.md
-git add docs/RUNBOOK_GIT_CLEAN_PUSH.md
+git add docs/tech/DATA_POLICY.md
+git add docs/tech/REPRO_STEPS.md
+git add docs/tech/CONNECTION_NOTES.md
+git add docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md
 git add scripts/
 git add README.md
 git add PUBLISH_CHECKLIST.md
 
-git commit -m "Remove large CSV files from tracking (see docs/DATA_POLICY.md)
+git commit -m "Remove large CSV files from tracking (see docs/tech/DATA_POLICY.md)
 
 - Updated .gitignore to block *.csv, data/, DE1_* patterns
 - Created DATA_POLICY.md explaining data acquisition
@@ -195,7 +195,7 @@ git commit -m "Remove large CSV files from tracking (see docs/DATA_POLICY.md)
 - Added 3 PowerShell scripts for size gates + verification
 - Updated PUBLISH_CHECKLIST.md with pre-push guardrails
 
-Raw CMS DE-SynPUF files must be downloaded separately (see docs/REPRO_STEPS.md).
+Raw CMS DE-SynPUF files must be downloaded separately (see docs/tech/REPRO_STEPS.md).
 "
 ```
 
@@ -203,7 +203,7 @@ Raw CMS DE-SynPUF files must be downloaded separately (see docs/REPRO_STEPS.md).
 
 **Path A: Soft Reset (if < 10 commits):**
 ```powershell
-# See exact commands in docs/RUNBOOK_GIT_CLEAN_PUSH.md
+# See exact commands in docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md
 git reset --soft HEAD~<N>  # N = commits since large files added
 git rm --cached *.csv
 git add .
@@ -213,7 +213,7 @@ git push -u origin main --force
 
 **Path B: git-filter-repo (robust):**
 ```powershell
-# See detailed steps in docs/RUNBOOK_GIT_CLEAN_PUSH.md
+# See detailed steps in docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md
 pip install git-filter-repo
 git filter-repo --path-glob '*.csv' --invert-paths
 git remote add origin <url>
@@ -318,10 +318,10 @@ if ($LASTEXITCODE -eq 0) {
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/DATA_POLICY.md](docs/DATA_POLICY.md) | Why datasets excluded + download instructions |
-| [docs/RUNBOOK_GIT_CLEAN_PUSH.md](docs/RUNBOOK_GIT_CLEAN_PUSH.md) | Git history cleanup (Windows) |
-| [docs/REPRO_STEPS.md](docs/REPRO_STEPS.md) | Full reproduction guide (2-4 hours) |
-| [docs/CONNECTION_NOTES.md](docs/CONNECTION_NOTES.md) | BigQuery/Tableau auth (no secrets) |
+| [docs/tech/DATA_POLICY.md](docs/tech/DATA_POLICY.md) | Why datasets excluded + download instructions |
+| [docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md](docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md) | Git history cleanup (Windows) |
+| [docs/tech/REPRO_STEPS.md](docs/tech/REPRO_STEPS.md) | Full reproduction guide (2-4 hours) |
+| [docs/tech/CONNECTION_NOTES.md](docs/tech/CONNECTION_NOTES.md) | BigQuery/Tableau auth (no secrets) |
 | [scripts/pre_push_size_gate.ps1](scripts/pre_push_size_gate.ps1) | Automated size check (run before push) |
 | [scripts/verify_no_large_blobs.ps1](scripts/verify_no_large_blobs.ps1) | Post-cleanup verification |
 | [PUBLISH_CHECKLIST.md](PUBLISH_CHECKLIST.md) | Updated with pre-push guardrails |
@@ -336,7 +336,7 @@ if ($LASTEXITCODE -eq 0) {
 - PUB-03: Reproducibility Documentation ✅
 - PUB-04: Pre-Push Guardrails ✅
 
-**Next Step:** User executes git history cleanup runbook (docs/RUNBOOK_GIT_CLEAN_PUSH.md), then pushes successfully.
+**Next Step:** User executes git history cleanup runbook (docs/tech/RUNBOOK_GIT_CLEAN_PUSH.md), then pushes successfully.
 
 **Deliverables:** 10 files (5 docs, 3 scripts, 2 modified)  
 **Time to Complete:** Agent work complete (30 min). User execution: 10-20 min (runbook + verification).

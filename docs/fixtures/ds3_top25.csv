@@ -1,0 +1,26 @@
+desynpuf_id,clm_id,at_risk_amt,denied_potential_allowed_proxy_amt,payer_allowed_amt,observed_paid_amt,payer_yield_gap_amt,aging_days,p_denial,top_denial_group,top_next_best_action,top_hcpcs,top_denial_prcsg
+X0001,C0001,2450.0,1180.0,7940.0,7740.0,202.0,11,0.202,Invalid Data,Front-end edit,B2345,D
+X0002,C0002,2400.0,1160.0,7880.0,7680.0,204.0,12,0.204,Noncovered,Coverage verification,A1234,C
+X0003,C0003,2350.0,1140.0,7820.0,7620.0,206.0,13,0.206,Invalid Data,Front-end edit,B2345,D
+X0004,C0004,2300.0,1120.0,7760.0,7560.0,208.0,14,0.208,Noncovered,Coverage verification,A1234,C
+X0005,C0005,2250.0,1100.0,7700.0,7500.0,210.0,15,0.210,Invalid Data,Front-end edit,B2345,D
+X0006,C0006,2200.0,1080.0,7640.0,7440.0,212.0,16,0.212,Noncovered,Coverage verification,A1234,C
+X0007,C0007,2150.0,1060.0,7580.0,7380.0,214.0,17,0.214,Invalid Data,Front-end edit,B2345,D
+X0008,C0008,2100.0,1040.0,7520.0,7320.0,216.0,18,0.216,Noncovered,Coverage verification,A1234,C
+X0009,C0009,2050.0,1020.0,7460.0,7260.0,218.0,19,0.218,Invalid Data,Front-end edit,B2345,D
+X0010,C0010,2000.0,1000.0,7400.0,7200.0,220.0,20,0.220,Noncovered,Coverage verification,A1234,C
+X0011,C0011,1950.0,980.0,7340.0,7140.0,222.0,21,0.222,Invalid Data,Front-end edit,B2345,D
+X0012,C0012,1900.0,960.0,7280.0,7080.0,224.0,22,0.224,Noncovered,Coverage verification,A1234,C
+X0013,C0013,1850.0,940.0,7220.0,7020.0,226.0,23,0.226,Invalid Data,Front-end edit,B2345,D
+X0014,C0014,1800.0,920.0,7160.0,6960.0,228.0,24,0.228,Noncovered,Coverage verification,A1234,C
+X0015,C0015,1750.0,900.0,7100.0,6900.0,230.0,25,0.230,Invalid Data,Front-end edit,B2345,D
+X0016,C0016,1700.0,880.0,7040.0,6840.0,232.0,26,0.232,Noncovered,Coverage verification,A1234,C
+X0017,C0017,1650.0,860.0,6980.0,6780.0,234.0,27,0.234,Invalid Data,Front-end edit,B2345,D
+X0018,C0018,1600.0,840.0,6920.0,6720.0,236.0,28,0.236,Noncovered,Coverage verification,A1234,C
+X0019,C0019,1550.0,820.0,6860.0,6660.0,238.0,29,0.238,Invalid Data,Front-end edit,B2345,D
+X0020,C0020,1500.0,800.0,6800.0,6600.0,240.0,30,0.240,Noncovered,Coverage verification,A1234,C
+X0021,C0021,1450.0,780.0,6740.0,6540.0,242.0,31,0.242,Invalid Data,Front-end edit,B2345,D
+X0022,C0022,1400.0,760.0,6680.0,6480.0,244.0,32,0.244,Noncovered,Coverage verification,A1234,C
+X0023,C0023,1350.0,740.0,6620.0,6420.0,246.0,33,0.246,Invalid Data,Front-end edit,B2345,D
+X0024,C0024,1300.0,720.0,6560.0,6360.0,248.0,34,0.248,Noncovered,Coverage verification,A1234,C
+X0025,C0025,1250.0,700.0,6500.0,6300.0,250.0,35,0.250,Invalid Data,Front-end edit,B2345,D

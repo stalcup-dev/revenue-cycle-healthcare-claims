@@ -112,7 +112,7 @@
 
 - [x] **Confirm DS1_complete usage requirement present:**
   ```powershell
-  Select-String -Path docs/02_data_contract_ds0_ds1.md -Pattern "CRITICAL REQUIREMENT"
+  Select-String -Path docs/tech/02_data_contract_ds0_ds1.md -Pattern "CRITICAL REQUIREMENT"
   # Expected: Match found (2 occurrences)
   ```
 
@@ -173,10 +173,10 @@ cd "Desktop/Data Analyst Projects/revenue-cycle-healthcare-claims"
 
 # Stage all new files
 git add README.md LICENSE .gitignore
-git add docs/00_exec_overview_spec.md
-git add docs/01_metric_definitions.md
-git add docs/02_data_contract_ds0_ds1.md
-git add docs/03_validation_acceptance.md
+git add docs/tech/00_exec_overview_spec.md
+git add docs/tech/01_metric_definitions.md
+git add docs/tech/02_data_contract_ds0_ds1.md
+git add docs/tech/03_validation_acceptance.md
 git add tableau/README_tableau.md
 git add portfolio_snippet.md
 

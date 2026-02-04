@@ -1,0 +1,6 @@
+svc_month,denial_group,preventability_bucket,next_best_action,hcpcs_cd,denied_potential_allowed_proxy_amt,n_lines,pct_of_month_total
+2010-12-01,Noncovered,Preventable,Coverage verification,A1234,12500.0,320,0.18
+2010-12-01,Invalid Data,Preventable,Front-end edit,B2345,9800.0,280,0.14
+2010-12-01,Bundled / No Pay,Preventable,Modifier review,C3456,7600.0,210,0.11
+2010-12-01,Compliance,Preventable,Compliance review,D4567,6400.0,190,0.09
+2010-12-01,Other Denial,Preventable,Specialist review,E5678,5200.0,160,0.08

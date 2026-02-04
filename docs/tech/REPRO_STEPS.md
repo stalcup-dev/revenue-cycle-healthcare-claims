@@ -415,3 +415,30 @@ WHERE is_complete_week = TRUE;
 
 **Last Updated:** 2026-01-13  
 **Tested On:** Windows 11, dbt 1.11, BigQuery Standard SQL, Tableau 2023.3
+
+pip install -e .
+python -c "from notebooks.utils import story_blocks as sb; print('IMPORT_OK')"
+
+## OFFLINE Story Pack (no BigQuery)
+From repo root:
+
+powershell -ExecutionPolicy Bypass -File scripts\bootstrap_env.ps1 -Command "python -c ""from notebooks.utils import story_blocks as sb; print('IMPORT_OK')"""
+
+powershell -ExecutionPolicy Bypass -File scripts\bootstrap_env.ps1 -Command "python -m scripts.publish_story_pack"
+
+## OFFLINE Story Pack (no BigQuery)
+From repo root:
+
+powershell -ExecutionPolicy Bypass -File scripts/bootstrap_env.ps1 -Command "python -c ""from notebooks.utils import story_blocks as sb; print('IMPORT_OK')"""
+
+powershell -ExecutionPolicy Bypass -File scripts/bootstrap_env.ps1 -Command "python -m scripts.publish_story_pack"
+
+## OFFLINE Story Pack (no BigQuery)
+From repo root:
+
+powershell -ExecutionPolicy Bypass -File scripts/bootstrap_env.ps1 python -c "from notebooks.utils import story_blocks as sb; print('IMPORT_OK')"
+
+From scripts/ folder:
+
+cd scripts
+powershell -ExecutionPolicy Bypass -File ..\scripts\bootstrap_env.ps1 python -c "from notebooks.utils import story_blocks as sb; print('IMPORT_OK')"

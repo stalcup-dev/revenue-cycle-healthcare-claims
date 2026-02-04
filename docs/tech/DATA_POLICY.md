@@ -96,7 +96,7 @@ git rm --cached -r data/
 git status
 
 # Commit the removal
-git commit -m "Remove large datasets from tracking (see docs/DATA_POLICY.md)"
+git commit -m "Remove large datasets from tracking (see docs/tech/DATA_POLICY.md)"
 ```
 
 ---

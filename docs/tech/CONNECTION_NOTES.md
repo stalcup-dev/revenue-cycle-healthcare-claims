@@ -228,7 +228,7 @@ Server → Tableau Public → Save to Web
 ## Where Connection Instructions Live
 
 ### For dbt Users:
-- **This file** (`docs/CONNECTION_NOTES.md`) — High-level auth options
+- **This file** (`docs/tech/CONNECTION_NOTES.md`) — High-level auth options
 - **`~/.dbt/profiles.yml`** — Your local config (NOT in repo)
 - **[REPRO_STEPS.md](REPRO_STEPS.md)** — Step-by-step setup guide
 

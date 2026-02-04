@@ -254,6 +254,6 @@ Color: IF [wow_yield_gap_amt_k] > 0 THEN "Red" ELSE "Green" END
 ## Contact
 
 For questions about DS0 implementation, see:
-- [metric_dictionary.md](docs/metric_dictionary.md) — Metric definitions
+- [metric_dictionary.md](docs/tech/metric_dictionary.md) — Metric definitions
 - [workqueue_playbook.md](docs/workqueue_playbook.md) — Operational context
 - [decision_memo.md](docs/decision_memo.md) — Strategic rationale
