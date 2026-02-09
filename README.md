@@ -12,11 +12,10 @@
 **Quick Links:** [View Dashboard](docs/images/tab1.png) | [STAR Impact](portfolio/STAR_IMPACT_SUMMARY.md) | [Setup Guide](docs/REPRO_STEPS.md) | [Metric Definitions](docs/01_metric_definitions.md)
 
 ## Start Here (2-minute path)
-- [Case Study One-Pager](docs/CASE_STUDY_ONE_PAGER.md)
-- [Executive Summary](docs/executive_summary.md)
-- [Decision Memo (Latest Complete Week)](docs/decision_memo_latest_complete_week.md)
-- [Story Index](docs/story/README.md)
 - [Queue Volume Shift Brief (PDF)](docs/queue_volume_shift_brief_v1.pdf)
+- [Queue Volume Shift Brief (Notebook)](notebooks/queue_volume_shift_brief_v1.ipynb)
+- [Queue Volume Shift Playbook (1 Page)](docs/QUEUE_VOLUME_SHIFT_PLAYBOOK_1PAGE.md)
+- [Queue Brief QA Checklist](docs/QA_CHECKLIST_QUEUE_BRIEF.md)
 
 ## Architecture (what this project demonstrates)
 Production path: BigQuery (warehouse) -> dbt (marts) -> Tableau dashboards + Jupyter storytelling notebooks.
