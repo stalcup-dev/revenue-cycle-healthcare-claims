@@ -1,4 +1,4 @@
-# Revenue Cycle Executive Overview — Tab 1: KPI Strip & Trends
+# Revenue Cycle Executive Overview - Tab 1: KPI Strip and Trends
 
 ![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?logo=dbt&logoColor=white)
 ![BigQuery](https://img.shields.io/badge/BigQuery-SQL-4285F4?logo=googlebigquery&logoColor=white)
@@ -9,14 +9,13 @@
 
 **Enterprise-grade weekly KPI dashboard with partial-week guardrails and mature-claims maturity rules.**
 
-**Quick Links:** [📊 View Dashboard](docs/images/tab1.png) • [🎯 STAR Impact](portfolio/STAR_IMPACT_SUMMARY.md) • [🔧 Setup Guide](docs/REPRO_STEPS.md) • [📖 Metric Definitions](docs/01_metric_definitions.md)
+**Quick Links:** [View Dashboard](docs/images/tab1.png) | [STAR Impact](portfolio/STAR_IMPACT_SUMMARY.md) | [Setup Guide](docs/REPRO_STEPS.md) | [Metric Definitions](docs/01_metric_definitions.md)
 
 ## Start Here (2-minute path)
-- docs/CASE_STUDY_ONE_PAGER.md
-- docs/executive_summary.md
-- docs/decision_memo_latest_complete_week.md
-- docs/story/README.md
-- docs/queue_volume_shift_brief_v1.pdf
+- [Queue Volume Shift Brief (PDF)](docs/queue_volume_shift_brief_v1.pdf)
+- [Queue Volume Shift Brief (Notebook)](notebooks/queue_volume_shift_brief_v1.ipynb)
+- [Queue Volume Shift Playbook (1 Page)](docs/QUEUE_VOLUME_SHIFT_PLAYBOOK_1PAGE.md)
+- [Queue Brief QA Checklist](docs/QA_CHECKLIST_QUEUE_BRIEF.md)
 
 ## Architecture (what this project demonstrates)
 Production path: BigQuery (warehouse) -> dbt (marts) -> Tableau dashboards + Jupyter storytelling notebooks.
@@ -30,10 +29,10 @@ Built with **dbt** + **BigQuery SQL** + **Tableau** using CMS DE-SynPUF syntheti
 ## How to view in 60 seconds
 
 1) Executive artifact (NB-03)
-- Open: docs/executive_summary.md
+- Open: [docs/executive_summary.md](docs/executive_summary.md)
 - Images referenced inside the markdown:
-  - docs/images/nb03_kpi_strip.png
-  - docs/images/nb03_trends_grid.png
+  - [docs/images/nb03_kpi_strip.png](docs/images/nb03_kpi_strip.png)
+  - [docs/images/nb03_trends_grid.png](docs/images/nb03_trends_grid.png)
 
 2) What this proves (exec-safe)
 - KPIs are sourced from marts only (DS0/DS1) and are complete-week safe.
@@ -41,15 +40,16 @@ Built with **dbt** + **BigQuery SQL** + **Tableau** using CMS DE-SynPUF syntheti
 
 3) Re-generate the artifact (optional)
 
-    python -m nbconvert --execute --to notebook --inplace notebooks
-b03_exec_overview_artifact.ipynb
+```bash
+python -m nbconvert --execute --to notebook --inplace notebooks/nb03_exec_overview_artifact.ipynb
+```
 
 ## Acceptance Criteria
 - `README.md` contains this section verbatim.
 - No other files modified.
 
-### NB-05 ? Workqueue Story (marts-only)
-- Notebook: `nb05_workqueue_story.ipynb`
-- Outputs: `workqueue_memo_latest_week.md`, `nb05_workqueue_top25.png`
+### NB-05 - Workqueue Story (marts-only)
+- Notebook: [`notebooks/nb05_workqueue_story.ipynb`](notebooks/nb05_workqueue_story.ipynb)
+- Outputs: [`docs/workqueue_memo_latest_week.md`](docs/workqueue_memo_latest_week.md), [`docs/images/nb05_workqueue_top25.png`](docs/images/nb05_workqueue_top25.png)
 - Purpose: Decision-ready snapshot of top at-risk workqueue items (Top 25), generated from marts-only sources.
 - Data: DS3 required; DS0 optional.
