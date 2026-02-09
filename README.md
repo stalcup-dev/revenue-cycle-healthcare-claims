@@ -16,6 +16,7 @@
 - docs/executive_summary.md
 - docs/decision_memo_latest_complete_week.md
 - docs/story/README.md
+- docs/queue_volume_shift_brief_v1.pdf
 
 ## Architecture (what this project demonstrates)
 Production path: BigQuery (warehouse) -> dbt (marts) -> Tableau dashboards + Jupyter storytelling notebooks.
@@ -52,4 +53,3 @@ b03_exec_overview_artifact.ipynb
 - Outputs: `workqueue_memo_latest_week.md`, `nb05_workqueue_top25.png`
 - Purpose: Decision-ready snapshot of top at-risk workqueue items (Top 25), generated from marts-only sources.
 - Data: DS3 required; DS0 optional.
-
