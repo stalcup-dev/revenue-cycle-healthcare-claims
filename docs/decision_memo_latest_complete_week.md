@@ -1,5 +1,4 @@
 # Decision Memo - Exec Overview (Latest Complete + Mature Week)
-Standard: [Decision Standard](DECISION_STANDARD.md)
 
 ## Decision
 Decision: Hold queue expansion; validate volume shift before actioning capacity.
@@ -37,3 +36,4 @@ Interpretation note: Service-date trends reflect care timing and coding; posting
 
 ## Interpretation status (operational)
 Status: LIMITED_CONTEXT
+Reason: volume shift flagged (>15% vs rolling 8-week median); partial-week risk HIGH (5,612 vs 8,171, 68.7%); history tier 12w (LIMITED_CONTEXT); comparator present

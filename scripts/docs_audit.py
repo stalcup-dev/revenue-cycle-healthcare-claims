@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/env python3
-"""Docs audit gate: canonical checks by default, optional full-repo reporting."""
+"""Docs audit gate: canonical checks by default, optional all-doc reporting."""
 
 from __future__ import annotations
 
@@ -10,21 +10,27 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-README = REPO_ROOT / "README.md"
-ALL_MD_FILES = [README] + sorted((REPO_ROOT / "docs").rglob("*.md"))
+README_PATH = REPO_ROOT / "README.md"
+ALL_MD_FILES = [README_PATH] + sorted((REPO_ROOT / "docs").rglob("*.md"))
 
-CANONICAL_DOC_HINTS = [
+CANONICAL_ALLOWLIST = [
+    REPO_ROOT / "README.md",
+    REPO_ROOT / "docs" / "START_HERE.md",
     REPO_ROOT / "docs" / "CASE_STUDY_ONE_PAGER.md",
-    REPO_ROOT / "docs" / "HIRING_SHOWCASE_BRIEF.md",
     REPO_ROOT / "docs" / "INTERVIEW_WALKTHROUGH_90S.md",
     REPO_ROOT / "docs" / "DECISION_STANDARD.md",
     REPO_ROOT / "docs" / "executive_summary.md",
     REPO_ROOT / "docs" / "decision_memo_latest_complete_week.md",
-    REPO_ROOT / "docs" / "QUEUE_VOLUME_SHIFT_PLAYBOOK_1PAGE.md",
-    REPO_ROOT / "docs" / "DATA_CONTRACT_QUEUE_BRIEF.md",
-    REPO_ROOT / "docs" / "QA_CHECKLIST_QUEUE_BRIEF.md",
     REPO_ROOT / "docs" / "story" / "README.md",
+    REPO_ROOT / "docs" / "story" / "nb03_exec_overview.md",
+    REPO_ROOT / "docs" / "story" / "nb04_driver_pareto.md",
+    REPO_ROOT / "docs" / "story" / "nb05_workqueue.md",
 ]
+
+README_REQUIRED_SECTIONS = {
+    "Start Here (Hiring Manager, 2 minutes)",
+    "Operator Deep Dive (Queue Volume Shift)",
+}
 
 FORBIDDEN_PATTERNS = [
     re.compile(r"\b52[\s-]*week(s)?\b", re.IGNORECASE),
@@ -39,16 +45,12 @@ REASON_DUP_DOCS = [
     REPO_ROOT / "docs" / "executive_summary.md",
 ]
 
+# Keep plain-path enforcement strict only on front-door docs.
 PLAIN_PATH_ENFORCED_DOCS = [
-    README,
-    REPO_ROOT / "docs" / "HIRING_SHOWCASE_BRIEF.md",
+    REPO_ROOT / "README.md",
+    REPO_ROOT / "docs" / "START_HERE.md",
     REPO_ROOT / "docs" / "story" / "README.md",
 ]
-
-REQUIRED_README_SECTIONS = {
-    "Start Here (Hiring Manager, 2 minutes)",
-    "Operator Deep Dive (Queue Volume Shift)",
-}
 
 MD_LINK_PATTERN = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 PLAIN_PATH_PATTERN = re.compile(
@@ -58,97 +60,97 @@ CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
 
 
 def rel(path: Path) -> str:
-    return str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+    return str(path.resolve().relative_to(REPO_ROOT.resolve())).replace("\\", "/")
 
 
 def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
-def local_link_target(raw_target: str) -> str:
-    target = raw_target.strip()
-    if not target:
+def normalize_local_target(target: str) -> str:
+    cleaned = target.strip()
+    if not cleaned:
         return ""
-    if target.startswith("#") or target.startswith("http://") or target.startswith("https://"):
+    if cleaned.startswith("#"):
         return ""
-    return target.split("#", 1)[0].split("?", 1)[0].strip()
+    if cleaned.startswith("http://") or cleaned.startswith("https://"):
+        return ""
+    return cleaned.split("#", 1)[0].split("?", 1)[0].strip()
 
 
-def parse_readme_required_links() -> list[Path]:
-    required: list[Path] = []
-    text = load_text(README)
+def parse_readme_required_local_links() -> list[Path]:
+    text = load_text(README_PATH)
     current_section = ""
+    required: list[Path] = []
 
     for line in text.splitlines():
         if line.startswith("## "):
             current_section = line[3:].strip()
             continue
-        if current_section not in REQUIRED_README_SECTIONS:
+        if current_section not in README_REQUIRED_SECTIONS:
             continue
         for raw_target in MD_LINK_PATTERN.findall(line):
-            target = local_link_target(raw_target)
-            if not target:
+            local_target = normalize_local_target(raw_target)
+            if not local_target:
                 continue
-            required.append((README.parent / target).resolve())
+            required.append((README_PATH.parent / local_target).resolve())
 
-    # Deduplicate while preserving order
-    deduped: list[Path] = []
     seen: set[Path] = set()
-    for path in required:
-        if path in seen:
+    ordered: list[Path] = []
+    for item in required:
+        if item in seen:
             continue
-        seen.add(path)
-        deduped.append(path)
-    return deduped
+        seen.add(item)
+        ordered.append(item)
+    return ordered
 
 
-def build_canonical_md_set(required_links: list[Path]) -> list[Path]:
-    docs: list[Path] = [README]
+def build_canonical_docs(readme_md_targets: list[Path]) -> list[Path]:
+    docs: list[Path] = [README_PATH.resolve()]
 
-    for path in CANONICAL_DOC_HINTS:
+    for path in CANONICAL_ALLOWLIST:
         if path.exists():
-            docs.append(path)
+            docs.append(path.resolve())
 
-    for path in required_links:
-        if path.suffix.lower() == ".md" and path.exists():
-            docs.append(path)
+    for path in readme_md_targets:
+        if path.exists() and path.suffix.lower() == ".md":
+            docs.append(path.resolve())
 
     deduped: list[Path] = []
     seen: set[Path] = set()
     for path in docs:
-        resolved = path.resolve()
-        if resolved in seen:
+        if path in seen:
             continue
-        seen.add(resolved)
-        deduped.append(resolved)
+        seen.add(path)
+        deduped.append(path)
     return sorted(deduped)
 
 
-def check_missing_required_links(required_links: list[Path]) -> list[str]:
+def check_missing_readme_targets(required_targets: list[Path]) -> list[str]:
     missing: list[str] = []
-    for path in required_links:
+    for path in required_targets:
         if not path.exists():
             missing.append(rel(path))
     return missing
 
 
-def check_broken_links(files: list[Path]) -> list[tuple[str, str]]:
+def check_broken_links(md_files: list[Path]) -> list[tuple[str, str]]:
     broken: list[tuple[str, str]] = []
-    for md in files:
+    for md in md_files:
         text = load_text(md)
-        for target in MD_LINK_PATTERN.findall(text):
-            path_part = local_link_target(target)
-            if not path_part:
+        for raw_target in MD_LINK_PATTERN.findall(text):
+            local_target = normalize_local_target(raw_target)
+            if not local_target:
                 continue
-            resolved = (md.parent / path_part).resolve()
+            resolved = (md.parent / local_target).resolve()
             if not resolved.exists():
-                broken.append((rel(md), target))
+                broken.append((rel(md), raw_target))
     return broken
 
 
-def check_forbidden_phrases(files: list[Path]) -> list[tuple[str, int, str]]:
+def check_forbidden_phrases(md_files: list[Path]) -> list[tuple[str, int, str]]:
     hits: list[tuple[str, int, str]] = []
-    for md in files:
+    for md in md_files:
         text = load_text(md)
         for pat in FORBIDDEN_PATTERNS:
             for match in pat.finditer(text):
@@ -157,9 +159,9 @@ def check_forbidden_phrases(files: list[Path]) -> list[tuple[str, int, str]]:
     return hits
 
 
-def check_plain_path_refs(files: list[Path]) -> list[tuple[str, int, str]]:
+def check_plain_path_refs(md_files: list[Path]) -> list[tuple[str, int, str]]:
     findings: list[tuple[str, int, str]] = []
-    for md in files:
+    for md in md_files:
         text = load_text(md)
         text_wo_code = CODE_BLOCK_PATTERN.sub("", text)
         link_spans = [m.span() for m in MD_LINK_PATTERN.finditer(text_wo_code)]
@@ -184,77 +186,106 @@ def check_reason_duplication() -> list[tuple[str, int]]:
     return findings
 
 
-def print_section(title: str, rows: list[str]) -> None:
-    if not rows:
+def print_section(title: str, lines: list[str]) -> None:
+    if not lines:
         return
     print(f"\n{title}")
-    for row in rows:
-        print(f"- {row}")
+    for line in lines:
+        print(f"- {line}")
+
+
+def evaluate_scope(scope_files: list[Path], missing_readme_targets: list[str]) -> dict[str, list]:
+    plain_scope = [p for p in PLAIN_PATH_ENFORCED_DOCS if p.exists() and p in scope_files]
+    return {
+        "missing_required": missing_readme_targets,
+        "broken": check_broken_links(scope_files),
+        "forbidden": check_forbidden_phrases(scope_files),
+        "plain_refs": check_plain_path_refs(plain_scope),
+        "reason_dups": check_reason_duplication(),
+    }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Audit canonical docs and optionally report legacy debt.")
-    parser.add_argument("--all", action="store_true", help="Report findings for all markdown docs.")
+    parser = argparse.ArgumentParser(description="Audit docs quality gates.")
+    parser.add_argument("--all", action="store_true", help="Scan all docs for informational reporting.")
     parser.add_argument(
-        "--all-strict",
+        "--strict",
         action="store_true",
-        help="When used with --all, fail on all-doc findings (not only canonical findings).",
+        help="When used with --all, fail if all-doc findings exist.",
     )
     args = parser.parse_args()
 
-    required_links = parse_readme_required_links()
-    canonical_docs = build_canonical_md_set(required_links)
+    readme_required_targets = parse_readme_required_local_links()
+    readme_md_targets = [p for p in readme_required_targets if p.suffix.lower() == ".md"]
+    canonical_files = build_canonical_docs(readme_md_targets)
+    missing_readme_targets = check_missing_readme_targets(readme_required_targets)
 
-    missing_required = check_missing_required_links(required_links)
-    broken = check_broken_links(canonical_docs)
-    forbidden = check_forbidden_phrases(canonical_docs)
-    plain_docs = [p for p in PLAIN_PATH_ENFORCED_DOCS if p.exists()]
-    plain_refs = check_plain_path_refs(plain_docs)
-    reason_dups = check_reason_duplication()
+    canonical = evaluate_scope(canonical_files, missing_readme_targets)
 
     print("DOCS_AUDIT_REPORT")
-    print(f"broken_links={len(broken) + len(missing_required)}")
-    print(f"forbidden_hits={len(forbidden)}")
-    print(f"plain_path_refs={len(plain_refs)}")
-    print(f"reason_dup_hits={len(reason_dups)}")
+    print(f"broken_links={len(canonical['missing_required']) + len(canonical['broken'])}")
+    print(f"forbidden_hits={len(canonical['forbidden'])}")
+    print(f"plain_path_refs={len(canonical['plain_refs'])}")
+    print(f"reason_dup_hits={len(canonical['reason_dups'])}")
 
-    print_section("MISSING_README_LINK_TARGETS", missing_required)
-    print_section("BROKEN_LINKS", [f"{f} -> {t}" for f, t in broken])
-    print_section("FORBIDDEN_PHRASES", [f"{f}:{line} -> {text}" for f, line, text in forbidden])
-    print_section("PLAIN_PATH_REFS", [f"{f}:{line} -> {text}" for f, line, text in plain_refs])
-    print_section("REASON_DUPLICATION", [f"{f} -> Reason: appears {count} times (max 1)" for f, count in reason_dups])
+    print_section("MISSING_README_LINK_TARGETS", canonical["missing_required"])
+    print_section("BROKEN_LINKS", [f"{f} -> {target}" for f, target in canonical["broken"]])
+    print_section(
+        "FORBIDDEN_PHRASES",
+        [f"{f}:{line} -> {text}" for f, line, text in canonical["forbidden"]],
+    )
+    print_section(
+        "PLAIN_PATH_REFS",
+        [f"{f}:{line} -> {text}" for f, line, text in canonical["plain_refs"]],
+    )
+    print_section(
+        "REASON_DUPLICATION",
+        [f"{f} -> Reason: appears {count} times (max 1)" for f, count in canonical["reason_dups"]],
+    )
 
-    canonical_failed = bool(missing_required or broken or forbidden or plain_refs or reason_dups)
+    canonical_failed = any(
+        [
+            canonical["missing_required"],
+            canonical["broken"],
+            canonical["forbidden"],
+            canonical["plain_refs"],
+            canonical["reason_dups"],
+        ]
+    )
 
-    all_failed = False
     if args.all:
-        all_broken = check_broken_links(ALL_MD_FILES)
-        all_forbidden = check_forbidden_phrases(ALL_MD_FILES)
-        all_plain = check_plain_path_refs(ALL_MD_FILES)
-
+        all_scope = evaluate_scope(ALL_MD_FILES, [])
         print("\nALL_DOCS_REPORT")
-        print(f"all_broken_links={len(all_broken)}")
-        print(f"all_forbidden_hits={len(all_forbidden)}")
-        print(f"all_plain_path_refs={len(all_plain)}")
+        print(f"all_broken_links={len(all_scope['broken'])}")
+        print(f"all_forbidden_hits={len(all_scope['forbidden'])}")
+        print(f"all_plain_path_refs={len(all_scope['plain_refs'])}")
+        print(f"all_reason_dup_hits={len(all_scope['reason_dups'])}")
 
-        # Show only a manageable preview for legacy debt reporting.
         print_section(
             "ALL_BROKEN_LINKS_SAMPLE",
-            [f"{f} -> {t}" for f, t in all_broken[:20]],
+            [f"{f} -> {target}" for f, target in all_scope["broken"][:20]],
         )
         print_section(
             "ALL_FORBIDDEN_PHRASES_SAMPLE",
-            [f"{f}:{line} -> {text}" for f, line, text in all_forbidden[:20]],
+            [f"{f}:{line} -> {text}" for f, line, text in all_scope["forbidden"][:20]],
         )
         print_section(
             "ALL_PLAIN_PATH_REFS_SAMPLE",
-            [f"{f}:{line} -> {text}" for f, line, text in all_plain[:20]],
+            [f"{f}:{line} -> {text}" for f, line, text in all_scope["plain_refs"][:20]],
         )
 
-        all_failed = bool(all_broken or all_forbidden or all_plain)
+        all_failed = any(
+            [
+                all_scope["broken"],
+                all_scope["forbidden"],
+                all_scope["plain_refs"],
+                all_scope["reason_dups"],
+            ]
+        )
 
-    if args.all and args.all_strict:
-        return 1 if (canonical_failed or all_failed) else 0
+        if args.strict:
+            return 1 if (canonical_failed or all_failed) else 0
+        return 0
 
     return 1 if canonical_failed else 0
 
