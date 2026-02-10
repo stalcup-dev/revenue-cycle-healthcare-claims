@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import re
 from pathlib import Path
@@ -96,6 +97,10 @@ WHERE
 
 def _fmt_money(value: float) -> str:
     return f"${value:,.0f}"
+
+
+def _fmt_pct(value: float) -> str:
+    return f"{value * 100.0:.1f}%"
 
 
 def _render_inline_no_links(text: str) -> str:
@@ -326,6 +331,39 @@ def _to_html_document(title: str, body_html: str) -> str:
       height: 100%;
       background: #0969da;
     }}
+    .stacked-bar {{
+      display: flex;
+      width: 100%;
+      height: 22px;
+      border: 1px solid #d0d7de;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #eaeef2;
+      margin: 8px 0 10px 0;
+    }}
+    .stacked-segment {{
+      height: 100%;
+    }}
+    .stacked-legend {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #24292f;
+    }}
+    .legend-item {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }}
+    .legend-swatch {{
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+      border: 1px solid rgba(0,0,0,0.08);
+    }}
   </style>
 </head>
 <body>
@@ -355,6 +393,9 @@ def _brief_markdown(
     source_fqn: str,
     summary_df: pd.DataFrame,
     workqueue_df: pd.DataFrame,
+    stability_df: pd.DataFrame,
+    current_dataset_week_key: str,
+    prior_dataset_week_key: str,
     workqueue_size: int,
 ) -> str:
     top2 = summary_df.head(2)
@@ -411,6 +452,37 @@ def _brief_markdown(
         f"- Summary: [`exports/denials_triage_summary_v1.csv`](../exports/denials_triage_summary_v1.csv)",
         *owner_lines,
         "",
+        "## Stability (Current vs Prior dataset-week)",
+        f"- Current dataset-week: `{current_dataset_week_key}`",
+        f"- Prior dataset-week: `{prior_dataset_week_key if prior_dataset_week_key else 'NONE'}`",
+        "",
+        "| denial_bucket | current_rank | prior_rank | rank_delta | current_share | prior_share | share_delta | delta_priority_score |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    stability_view = stability_df.copy()
+    if not stability_view.empty:
+        stability_view = stability_view.sort_values(
+            ["current_rank", "prior_rank", "denial_bucket"],
+            ascending=[True, True, True],
+            na_position="last",
+            kind="mergesort",
+        )
+        for _, row in stability_view.iterrows():
+            current_rank = "-" if pd.isna(row["current_rank"]) else str(int(row["current_rank"]))
+            prior_rank = "-" if pd.isna(row["prior_rank"]) else str(int(row["prior_rank"]))
+            rank_delta = "-" if pd.isna(row["rank_delta"]) else str(int(row["rank_delta"]))
+            lines.append(
+                "| "
+                + f"{row['denial_bucket']} | {current_rank} | {prior_rank} | {rank_delta} | "
+                + f"{_fmt_pct(float(row['current_share']))} | {_fmt_pct(float(row['prior_share']))} | "
+                + f"{_fmt_pct(float(row['share_delta']))} | {_fmt_money(float(row['delta_priority_score']))} |"
+            )
+    else:
+        lines.append("| N/A | - | - | - | 0.0% | 0.0% | 0.0% | $0 |")
+
+    lines.extend(
+        [
+            "",
         "## Falsification",
         "If next cycle the top-2 buckets do not remain in the top set or weighted exposure shifts materially, we change focus and re-prioritize.",
         "",
@@ -424,7 +496,8 @@ def _brief_markdown(
         _column_mapping_md(),
         "",
         "Note: This brief intentionally excludes payer-level conclusions because payer identity is missing in current marts.",
-    ]
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -432,7 +505,12 @@ def _teaching_markdown(
     source_fqn: str,
     summary_df: pd.DataFrame,
     workqueue_df: pd.DataFrame,
+    stability_df: pd.DataFrame,
     workqueue_size: int,
+    anchor_mode: str,
+    current_dataset_week_key: str,
+    prior_dataset_week_key: str,
+    top2_overlap: str,
 ) -> str:
     top_bucket = summary_df.iloc[0]["denial_bucket"] if not summary_df.empty else "N/A"
     top_reason = summary_df.iloc[0]["denial_reason"] if not summary_df.empty else "N/A"
@@ -443,6 +521,16 @@ def _teaching_markdown(
         if not workqueue_df.empty
         else "N/A"
     )
+
+    top2_current = stability_df.sort_values(
+        ["current_rank", "denial_bucket"], ascending=[True, True], na_position="last", kind="mergesort"
+    ).head(2)
+    top2_desc = ", ".join(top2_current["denial_bucket"].tolist()) if not top2_current.empty else "N/A"
+    worked_owner = queue_top_owner
+    worked_evidence = "Denial reason detail, line notes, routing owner"
+    if not workqueue_df.empty:
+        worked_owner = str(workqueue_df.iloc[0]["owner"])
+        worked_evidence = str(workqueue_df.iloc[0]["evidence_needed"])
 
     return "\n".join(
         [
@@ -461,28 +549,54 @@ def _teaching_markdown(
             "- Priority formula: `priority_score = denied_amount_sum * preventability_weight`.",
             "- Higher score means more preventable dollars are concentrated in that bucket.",
             "",
-            "## What is proxy vs real",
-            "- Payer identity is missing in this mart (`payer_dim_status = MISSING_IN_MART`).",
-            "- `service_date` is estimated from `aging_days` and is a proxy.",
-            "- `denied_amount` uses `denied_potential_allowed_proxy_amt`, also a proxy.",
+            "## What this is safe for",
+            "- Weekly prioritization of denial categories and queue routing.",
+            "- Directional focus decisions when top-bucket stability remains high.",
+            "- Reversible operating actions while data gaps are explicit.",
+            "",
+            "## What this is NOT safe for",
+            "- Payer-level conclusions (payer identity is missing in mart layer).",
+            "- Final financial recovery forecasts from proxy denied dollars alone.",
+            "- Irreversible policy changes without second-cycle confirmation.",
+            "",
+            "## What is real vs proxy",
+            "| Field | Status | Why it matters |",
+            "|---|---|---|",
+            "| payer | Proxy (`MISSING_IN_MART`) | cannot segment by payer yet |",
+            "| service_date | Proxy (derived from `aging_days`) | dataset-week anchor, not calendar service records |",
+            "| denied_amount | Proxy (`denied_potential_allowed_proxy_amt`) | directional prioritization only |",
+            "",
+            "## Decision tree",
+            f"- If `{top2_overlap}` and top buckets remain similar ({top2_desc}), keep focus and execute reversible actions.",
+            "- If overlap drops or rank/share moves materially, switch to INVESTIGATE and re-triage before scaling.",
+            "- If data quality worsens, hold and resolve data issues first.",
             "",
             "## How to use outputs",
-            "- Executive readers consume `docs/denials_triage_brief_v1.md` or `.html` for decision framing.",
-            f"- Analysts execute the top {workqueue_size} rows in `exports/denials_workqueue_v1.csv` with owner routing and evidence requirements.",
+            "- Exec reads: `docs/denials_triage_brief_v1.html` for current recommendation and stability proof.",
+            f"- Analyst works: top {workqueue_size} rows in `exports/denials_workqueue_v1.csv` with owner routing + evidence.",
             "",
-            "## 90-second talk track",
-            "1. Problem: denied dollars are concentrated and need immediate triage without over-claiming precision.",
-            "2. Method: dbt mart only, deterministic bucket rules, weighted priority scoring, top-N workqueue.",
-            f"3. Decision: focus this week on top denial buckets led by `{top_bucket}` / `{top_reason}`.",
-            "4. Action: route queue by owner and gather required evidence before irreversible policy changes.",
-            "5. Falsification: if top buckets or weighted exposure move materially next cycle, re-prioritize.",
-            "",
-            "## Five likely interview questions",
+            "## Hostile questions",
             "1. Why no payer insights? Because payer identity is missing in the mart; we state that explicitly and avoid false precision.",
             "2. Why use proxy denied amount? It is the only available consistent denied-dollar signal in this mart.",
             "3. Why weighted scoring? It separates likely preventable work from contractual/non-recoverable buckets.",
             "4. How do you avoid overreaction? LIMITED_CONTEXT framing and reversible actions first.",
             "5. What would make this stronger? Add payer_id/payer_name, true service dates, and CARC/RARC to marts.",
+            "6. Why trust week-over-week? We compare dataset-week keys anchored within the same extracted mart window.",
+            "7. Could this be an extraction artifact? Yes, so stability and overlap are checked each cycle.",
+            "8. Why top-2 overlap? It is a fast stability proxy for whether the operating focus is persisting.",
+            "9. What if OTHER_PROXY dominates? Use drilldown table and add mapping rules before scaling actions.",
+            "10. What changes recommendation? Material rank/share instability or worsening data quality.",
+            "",
+            "## Worked example",
+            f"- Top row: bucket `{top_bucket}` with reason `{top_reason}` and priority `{_fmt_money(top_priority)}`.",
+            f"- Owner routing: `{worked_owner}` with evidence `{worked_evidence}`.",
+            "- Operational translation: route first, collect evidence, then reassess stability next cycle.",
+            "",
+            "## Anchor interpretation",
+            f"- ANCHOR_MODE: `{anchor_mode}`",
+            f"- CURRENT_DATASET_WEEK_KEY: `{current_dataset_week_key}`",
+            f"- PRIOR_DATASET_WEEK_KEY: `{prior_dataset_week_key if prior_dataset_week_key else 'NONE'}`",
+            "- Dataset-week is derived from proxy service_date and may not match calendar reporting labels.",
             "",
             "## Demo steps (30 seconds)",
             "```bash",
@@ -493,12 +607,30 @@ def _teaching_markdown(
             "- Public brief: `docs/denials_triage_brief_v1.md` + `docs/denials_triage_brief_v1.html`",
             "- Private teaching memo: `exports/denials_triage_brief_v1_teaching.html`",
             "",
+            "## How to reduce OTHER_PROXY",
+            "- Add payer_id/payer_name to marts to reduce unclassified routing.",
+            "- Add true denial reason granularity (CARC/RARC) and maintain mapping dictionary.",
+            "- Add true service dates to remove proxy-date ambiguity.",
+            "- Interim mitigation: manual tagging loop on top OTHER_PROXY reasons each cycle.",
+            "",
+            "## How to size action",
+            "- Directional scenario math (proxy-based):",
+            "- `10-claim reduction impact = top_bucket_avg_denied * preventability_weight * 10`.",
+            "- `5pp share shift impact = total_priority_score * 0.05`.",
+            "- Use this for reversible action sizing, not hard financial forecasting.",
+            "",
             f"## Quick context stats\n- Total denied rows in summary: {total_invalid:,}\n- Top priority score: {_fmt_money(top_priority)}\n- Top queue owner: {queue_top_owner}",
         ]
     ) + "\n"
 
 
-def _visual_summary_html(summary_df: pd.DataFrame, workqueue_size: int) -> str:
+def _visual_summary_html(
+    summary_df: pd.DataFrame,
+    stability_df: pd.DataFrame,
+    workqueue_size: int,
+    current_dataset_week_key: str,
+    prior_dataset_week_key: str,
+) -> str:
     top5 = summary_df.head(5).copy()
     total_priority = float(summary_df["priority_score"].sum()) if not summary_df.empty else 0.0
     top2_priority = float(summary_df.head(2)["priority_score"].sum()) if not summary_df.empty else 0.0
@@ -559,7 +691,124 @@ def _visual_summary_html(summary_df: pd.DataFrame, workqueue_size: int) -> str:
         + "</tbody></table>"
     )
     bars_html = "<h3>Priority bars</h3><div class=\"priority-bars\">" + "".join(bars) + "</div>"
-    return kpi_html + table_html + bars_html
+
+    stability_rows: list[str] = []
+    stability_view = stability_df.copy()
+    if not stability_view.empty:
+        stability_view = stability_view.sort_values(
+            ["current_rank", "prior_rank", "denial_bucket"],
+            ascending=[True, True, True],
+            na_position="last",
+            kind="mergesort",
+        )
+        for _, row in stability_view.iterrows():
+            current_rank = "-" if pd.isna(row["current_rank"]) else str(int(row["current_rank"]))
+            prior_rank = "-" if pd.isna(row["prior_rank"]) else str(int(row["prior_rank"]))
+            rank_delta = "-" if pd.isna(row["rank_delta"]) else str(int(row["rank_delta"]))
+            stability_rows.append(
+                "<tr>"
+                f"<td>{escape(str(row['denial_bucket']))}</td>"
+                f"<td>{current_rank}</td>"
+                f"<td>{prior_rank}</td>"
+                f"<td>{rank_delta}</td>"
+                f"<td>{_fmt_pct(float(row['current_share']))}</td>"
+                f"<td>{_fmt_pct(float(row['prior_share']))}</td>"
+                f"<td>{_fmt_pct(float(row['share_delta']))}</td>"
+                f"<td>{escape(_fmt_money(float(row['delta_priority_score'])))}</td>"
+                "</tr>"
+            )
+    stability_html = (
+        "<h2>Stability (Current vs Prior)</h2>"
+        f"<p>Current dataset-week: <code>{escape(current_dataset_week_key)}</code> | "
+        f"Prior dataset-week: <code>{escape(prior_dataset_week_key if prior_dataset_week_key else 'NONE')}</code></p>"
+        "<table><thead><tr>"
+        "<th>denial_bucket</th><th>current_rank</th><th>prior_rank</th><th>rank_delta</th>"
+        "<th>current_share</th><th>prior_share</th><th>share_delta</th><th>delta_priority_score</th>"
+        "</tr></thead><tbody>"
+        + "".join(stability_rows)
+        + "</tbody></table>"
+    )
+
+    exposure_source = stability_df[["denial_bucket", "current_share"]].copy()
+    exposure_source = exposure_source[exposure_source["current_share"] > 0].sort_values(
+        ["current_share", "denial_bucket"], ascending=[False, True], kind="mergesort"
+    )
+    top_n = exposure_source.head(4).copy()
+    top_total = float(top_n["current_share"].sum()) if not top_n.empty else 0.0
+    other_share = max(0.0, 1.0 - top_total)
+    stacked_parts: list[str] = []
+    legend_parts: list[str] = []
+    palette = ["#0969da", "#1f7a8c", "#4f6fad", "#8a63d2", "#6a737d"]
+    for idx, (_, row) in enumerate(top_n.iterrows()):
+        share = float(row["current_share"])
+        label = str(row["denial_bucket"])
+        color = palette[idx % len(palette)]
+        stacked_parts.append(
+            f'<div class="stacked-segment" style="width:{share*100:.2f}%;background:{color};" '
+            f'title="{escape(label)} {_fmt_pct(share)}"></div>'
+        )
+        legend_parts.append(f'<span class="legend-item"><span class="legend-swatch" style="background:{color};"></span>{escape(label)} {_fmt_pct(share)}</span>')
+    if other_share > 0:
+        color = palette[4]
+        stacked_parts.append(
+            f'<div class="stacked-segment" style="width:{other_share*100:.2f}%;background:{color};" title="Other {_fmt_pct(other_share)}"></div>'
+        )
+        legend_parts.append(f'<span class="legend-item"><span class="legend-swatch" style="background:{color};"></span>Other {_fmt_pct(other_share)}</span>')
+    concentration_html = (
+        '<h2>Exposure concentration</h2>'
+        '<div class="stacked-bar">'
+        + "".join(stacked_parts)
+        + "</div>"
+        + '<div class="stacked-legend">'
+        + "".join(legend_parts)
+        + "</div>"
+    )
+
+    other_proxy = summary_df[summary_df["denial_bucket"] == "OTHER_PROXY"].copy()
+    other_proxy = other_proxy.sort_values(
+        ["priority_score", "denied_amount_sum", "denial_reason"],
+        ascending=[False, False, True],
+        kind="mergesort",
+    ).head(10)
+    other_rows: list[str] = []
+    for _, row in other_proxy.iterrows():
+        other_rows.append(
+            "<tr>"
+            f"<td>{escape(str(row['denial_reason']))}</td>"
+            f"<td>{escape(_fmt_money(float(row['denied_amount_sum'])))}</td>"
+            f"<td>{int(row['denial_count']):,}</td>"
+            f"<td>{escape(_fmt_money(float(row['priority_score'])))}</td>"
+            "</tr>"
+        )
+    other_html = (
+        "<h2>OTHER_PROXY drilldown (top reasons)</h2>"
+        "<table><thead><tr><th>denial_reason</th><th>denied_amount_sum</th><th>denial_count</th><th>priority_score</th></tr></thead><tbody>"
+        + ("".join(other_rows) if other_rows else "<tr><td colspan='4'>No OTHER_PROXY rows in current period.</td></tr>")
+        + "</tbody></table>"
+    )
+    impact_html = "<h2>Impact scenarios (directional)</h2><p>Directional only (proxy-based): planning signals, not forecast commitments.</p>"
+    if not summary_df.empty:
+        top_row = summary_df.sort_values(
+            ["priority_score", "denied_amount_sum", "denial_bucket", "denial_reason"],
+            ascending=[False, False, True, True],
+            kind="mergesort",
+        ).iloc[0]
+        top_bucket = str(top_row["denial_bucket"])
+        top_reason = str(top_row["denial_reason"])
+        avg_denied = float(top_row["avg_denied_amount"])
+        weight = float(top_row["preventability_weight"])
+        scenario_10_claims = avg_denied * weight * 10.0
+        scenario_5pp = total_priority * 0.05
+        impact_html += (
+            "<ul>"
+            f"<li>Top bucket (`{escape(top_bucket)} / {escape(top_reason)}`) 10-claim reduction: about {escape(_fmt_money(scenario_10_claims))} weighted exposure shift.</li>"
+            f"<li>5 percentage-point share shift in weighted exposure: about {escape(_fmt_money(scenario_5pp))} impact.</li>"
+            "</ul>"
+        )
+    else:
+        impact_html += "<p>No rows available for scenario sizing.</p>"
+
+    return kpi_html + table_html + bars_html + concentration_html + stability_html + other_html + impact_html
 
 
 OWNER_MAP = {
@@ -759,6 +1008,11 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Skip private teaching HTML memo.",
     )
+    parser.add_argument(
+        "--determinism-check",
+        action="store_true",
+        help="Write public HTML twice and fail if SHA256 changes between writes.",
+    )
     return parser.parse_args()
 
 
@@ -866,19 +1120,50 @@ def main() -> int:
     summary_df.to_csv(summary_path, index=False)
     workqueue_df.to_csv(workqueue_path, index=False)
     stability_df.to_csv(stability_path, index=False)
-    brief_markdown = _brief_markdown(source_fqn, summary_df, workqueue_df, args.workqueue_size)
+    brief_markdown = _brief_markdown(
+        source_fqn,
+        summary_df,
+        workqueue_df,
+        stability_df,
+        current_dataset_week_key,
+        prior_dataset_week_key,
+        args.workqueue_size,
+    )
     brief_path.write_text(brief_markdown, encoding="utf-8")
 
     if args.write_html:
-        visuals_html = _visual_summary_html(summary_df, args.workqueue_size)
-        body_html = visuals_html + _markdown_to_html(brief_markdown)
-        brief_html_path.write_text(
-            _to_html_document("Denials Triage Brief v1", body_html),
-            encoding="utf-8",
+        visuals_html = _visual_summary_html(
+            summary_df,
+            stability_df,
+            args.workqueue_size,
+            current_dataset_week_key,
+            prior_dataset_week_key,
         )
+        body_html = visuals_html + _markdown_to_html(brief_markdown)
+        public_html_doc = _to_html_document("Denials Triage Brief v1", body_html)
+        brief_html_path.write_text(public_html_doc, encoding="utf-8")
+        if args.determinism_check:
+            hash_1 = hashlib.sha256(brief_html_path.read_bytes()).hexdigest()
+            brief_html_path.write_text(public_html_doc, encoding="utf-8")
+            hash_2 = hashlib.sha256(brief_html_path.read_bytes()).hexdigest()
+            print(f"DETERMINISM_HTML_SHA256_1={hash_1}")
+            print(f"DETERMINISM_HTML_SHA256_2={hash_2}")
+            if hash_1 != hash_2:
+                raise RuntimeError("Determinism check failed: public HTML hash changed between identical writes.")
+            print("DETERMINISM_HTML_MATCH=TRUE")
 
     if args.write_teaching_html:
-        teaching_markdown = _teaching_markdown(source_fqn, summary_df, workqueue_df, args.workqueue_size)
+        teaching_markdown = _teaching_markdown(
+            source_fqn,
+            summary_df,
+            workqueue_df,
+            stability_df,
+            args.workqueue_size,
+            anchor_mode,
+            current_dataset_week_key,
+            prior_dataset_week_key,
+            top2_overlap,
+        )
         teaching_html_path.write_text(
             _to_html_document("Denials Triage Teaching Memo v1", _markdown_to_html(teaching_markdown)),
             encoding="utf-8",

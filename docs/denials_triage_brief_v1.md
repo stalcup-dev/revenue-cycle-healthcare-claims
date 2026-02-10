@@ -26,6 +26,17 @@ Focus this week on the top 2 denial buckets by priority score (covers 89.0% of w
 - Summary: [`exports/denials_triage_summary_v1.csv`](../exports/denials_triage_summary_v1.csv)
 - Eligibility/Auth team: 25 claims in the top 25.
 
+## Stability (Current vs Prior dataset-week)
+- Current dataset-week: `2011-02-07`
+- Prior dataset-week: `2011-01-31`
+
+| denial_bucket | current_rank | prior_rank | rank_delta | current_share | prior_share | share_delta | delta_priority_score |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| AUTH_ELIG | 1 | 1 | 0 | 65.1% | 63.7% | 1.3% | $-2,950 |
+| OTHER_PROXY | 2 | 2 | 0 | 33.4% | 35.1% | -1.7% | $-2,280 |
+| CODING_DOC | 3 | 3 | 0 | 1.6% | 1.1% | 0.5% | $70 |
+| DUPLICATE | 4 | 4 | 0 | 0.0% | 0.1% | -0.1% | $-30 |
+
 ## Falsification
 If next cycle the top-2 buckets do not remain in the top set or weighted exposure shifts materially, we change focus and re-prioritize.
 

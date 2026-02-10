@@ -90,6 +90,39 @@
       height: 100%;
       background: #0969da;
     }
+    .stacked-bar {
+      display: flex;
+      width: 100%;
+      height: 22px;
+      border: 1px solid #d0d7de;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #eaeef2;
+      margin: 8px 0 10px 0;
+    }
+    .stacked-segment {
+      height: 100%;
+    }
+    .stacked-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #24292f;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
   </style>
 </head>
 <body>
@@ -133,7 +166,7 @@
   <div class="priority-label">CODING_DOC / Bundled / No Pay ($90)</div>
   <div class="priority-track"><div class="priority-fill" style="width:0.5%"></div></div>
 </div>
-</div><h1>Denials Triage Brief v1</h1>
+</div><h2>Exposure concentration</h2><div class="stacked-bar"><div class="stacked-segment" style="width:65.06%;background:#0969da;" title="AUTH_ELIG 65.1%"></div><div class="stacked-segment" style="width:33.38%;background:#1f7a8c;" title="OTHER_PROXY 33.4%"></div><div class="stacked-segment" style="width:1.55%;background:#4f6fad;" title="CODING_DOC 1.6%"></div></div><div class="stacked-legend"><span class="legend-item"><span class="legend-swatch" style="background:#0969da;"></span>AUTH_ELIG 65.1%</span><span class="legend-item"><span class="legend-swatch" style="background:#1f7a8c;"></span>OTHER_PROXY 33.4%</span><span class="legend-item"><span class="legend-swatch" style="background:#4f6fad;"></span>CODING_DOC 1.6%</span></div><h2>Stability (Current vs Prior)</h2><p>Current dataset-week: <code>2011-02-07</code> | Prior dataset-week: <code>2011-01-31</code></p><table><thead><tr><th>denial_bucket</th><th>current_rank</th><th>prior_rank</th><th>rank_delta</th><th>current_share</th><th>prior_share</th><th>share_delta</th><th>delta_priority_score</th></tr></thead><tbody><tr><td>AUTH_ELIG</td><td>1</td><td>1</td><td>0</td><td>65.1%</td><td>63.7%</td><td>1.3%</td><td>$-2,950</td></tr><tr><td>OTHER_PROXY</td><td>2</td><td>2</td><td>0</td><td>33.4%</td><td>35.1%</td><td>-1.7%</td><td>$-2,280</td></tr><tr><td>CODING_DOC</td><td>3</td><td>3</td><td>0</td><td>1.6%</td><td>1.1%</td><td>0.5%</td><td>$70</td></tr><tr><td>DUPLICATE</td><td>4</td><td>4</td><td>0</td><td>0.0%</td><td>0.1%</td><td>-0.1%</td><td>$-30</td></tr></tbody></table><h2>OTHER_PROXY drilldown (top reasons)</h2><table><thead><tr><th>denial_reason</th><th>denied_amount_sum</th><th>denial_count</th><th>priority_score</th></tr></thead><tbody><tr><td>Other Denial</td><td>$10,790</td><td>471</td><td>$6,474</td></tr><tr><td>Allowed</td><td>$4,120</td><td>5,716</td><td>$2,472</td></tr><tr><td>Benefits Exhausted</td><td>$60</td><td>8</td><td>$36</td></tr><tr><td>Compliance</td><td>$60</td><td>9</td><td>$36</td></tr><tr><td>MSP/COB</td><td>$20</td><td>61</td><td>$12</td></tr><tr><td>Administrative</td><td>$0</td><td>18</td><td>$0</td></tr><tr><td>Unknown</td><td>$0</td><td>17</td><td>$0</td></tr></tbody></table><h2>Impact scenarios (directional)</h2><p>Directional only (proxy-based): planning signals, not forecast commitments.</p><ul><li>Top bucket (`AUTH_ELIG / Noncovered`) 10-claim reduction: about $568 weighted exposure shift.</li><li>5 percentage-point share shift in weighted exposure: about $1,352 impact.</li></ul><h1>Denials Triage Brief v1</h1>
 <p>Source relation: <code>rcm-flagship.rcm.mart_workqueue_claims</code> (dbt-transformed mart only).</p>
 <h2>Decision</h2>
 <p>Focus this week on the top 2 denial buckets by priority score (covers 89.0% of weighted denial exposure).</p>
@@ -162,6 +195,19 @@
 <li>Summary: <a href="../exports/denials_triage_summary_v1.csv"><code>exports/denials_triage_summary_v1.csv</code></a></li>
 <li>Eligibility/Auth team: 25 claims in the top 25.</li>
 </ul>
+<h2>Stability (Current vs Prior dataset-week)</h2>
+<ul>
+<li>Current dataset-week: <code>2011-02-07</code></li>
+<li>Prior dataset-week: <code>2011-01-31</code></li>
+</ul>
+<table>
+<thead><tr><th>denial_bucket</th><th>current_rank</th><th>prior_rank</th><th>rank_delta</th><th>current_share</th><th>prior_share</th><th>share_delta</th><th>delta_priority_score</th></tr></thead>
+<tbody>
+<tr><td>AUTH_ELIG</td><td>1</td><td>1</td><td>0</td><td>65.1%</td><td>63.7%</td><td>1.3%</td><td>$-2,950</td></tr>
+<tr><td>OTHER_PROXY</td><td>2</td><td>2</td><td>0</td><td>33.4%</td><td>35.1%</td><td>-1.7%</td><td>$-2,280</td></tr>
+<tr><td>CODING_DOC</td><td>3</td><td>3</td><td>0</td><td>1.6%</td><td>1.1%</td><td>0.5%</td><td>$70</td></tr>
+<tr><td>DUPLICATE</td><td>4</td><td>4</td><td>0</td><td>0.0%</td><td>0.1%</td><td>-0.1%</td><td>$-30</td></tr>
+</tbody></table>
 <h2>Falsification</h2>
 <p>If next cycle the top-2 buckets do not remain in the top set or weighted exposure shifts materially, we change focus and re-prioritize.</p>
 <h2>Data Gaps / Next Data Needed</h2>
