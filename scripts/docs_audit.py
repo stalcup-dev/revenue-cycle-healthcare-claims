@@ -45,7 +45,6 @@ REASON_DUP_DOCS = [
     REPO_ROOT / "docs" / "executive_summary.md",
 ]
 
-# Keep plain-path enforcement strict only on front-door docs.
 PLAIN_PATH_ENFORCED_DOCS = [
     REPO_ROOT / "README.md",
     REPO_ROOT / "docs" / "START_HERE.md",
@@ -194,14 +193,14 @@ def print_section(title: str, lines: list[str]) -> None:
         print(f"- {line}")
 
 
-def evaluate_scope(scope_files: list[Path], missing_readme_targets: list[str]) -> dict[str, list]:
+def evaluate_scope(scope_files: list[Path], missing_readme_targets: list[str], include_reason_dup: bool) -> dict[str, list]:
     plain_scope = [p for p in PLAIN_PATH_ENFORCED_DOCS if p.exists() and p in scope_files]
     return {
         "missing_required": missing_readme_targets,
         "broken": check_broken_links(scope_files),
         "forbidden": check_forbidden_phrases(scope_files),
         "plain_refs": check_plain_path_refs(plain_scope),
-        "reason_dups": check_reason_duplication(),
+        "reason_dups": check_reason_duplication() if include_reason_dup else [],
     }
 
 
@@ -220,7 +219,7 @@ def main() -> int:
     canonical_files = build_canonical_docs(readme_md_targets)
     missing_readme_targets = check_missing_readme_targets(readme_required_targets)
 
-    canonical = evaluate_scope(canonical_files, missing_readme_targets)
+    canonical = evaluate_scope(canonical_files, missing_readme_targets, include_reason_dup=False)
 
     print("DOCS_AUDIT_REPORT")
     print(f"broken_links={len(canonical['missing_required']) + len(canonical['broken'])}")
@@ -254,7 +253,7 @@ def main() -> int:
     )
 
     if args.all:
-        all_scope = evaluate_scope(ALL_MD_FILES, [])
+        all_scope = evaluate_scope(ALL_MD_FILES, [], include_reason_dup=True)
         print("\nALL_DOCS_REPORT")
         print(f"all_broken_links={len(all_scope['broken'])}")
         print(f"all_forbidden_hits={len(all_scope['forbidden'])}")
@@ -272,6 +271,10 @@ def main() -> int:
         print_section(
             "ALL_PLAIN_PATH_REFS_SAMPLE",
             [f"{f}:{line} -> {text}" for f, line, text in all_scope["plain_refs"][:20]],
+        )
+        print_section(
+            "ALL_REASON_DUPLICATION_SAMPLE",
+            [f"{f} -> Reason: appears {count} times (max 1)" for f, count in all_scope["reason_dups"][:20]],
         )
 
         all_failed = any(
