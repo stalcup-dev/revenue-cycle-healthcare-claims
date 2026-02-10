@@ -6,16 +6,17 @@ import re
 from pathlib import Path
 from typing import Any
 from html import escape
+from datetime import date
 
 import pandas as pd
 from google.cloud import bigquery
 
 
-SUMMARY_SQL = """
+DETAIL_SQL = """
 WITH base AS (
   SELECT
     CAST(clm_id AS STRING) AS claim_id,
-    DATE_SUB(CURRENT_DATE(), INTERVAL CAST(COALESCE(aging_days, 0) AS INT64) DAY) AS service_date,
+    DATE_SUB(@as_of_date, INTERVAL CAST(COALESCE(aging_days, 0) AS INT64) DAY) AS service_date,
     COALESCE(top_denial_group, top_denial_prcsg, 'UNSPECIFIED') AS denial_reason_raw,
     LOWER(
       CONCAT(
@@ -31,78 +32,7 @@ WITH base AS (
     COALESCE(denied_potential_allowed_proxy_amt, 0.0) AS denied_amount,
     COALESCE(p_denial, 0.0) AS p_denial
   FROM `{source_fqn}`
-),
-denied AS (
-  SELECT
-    *,
-    (
-      p_denial > 0
-      OR denial_code != ''
-      OR denial_reason_raw != 'UNSPECIFIED'
-      OR denied_amount > 0
-    ) AS denial_flag
-  FROM base
-),
-bucketed AS (
-  SELECT
-    *,
-    CASE
-      WHEN REGEXP_CONTAINS(denial_reason_text, r'auth|authorization|precert|elig|eligibility|coverage|member') THEN 'AUTH_ELIG'
-      WHEN REGEXP_CONTAINS(denial_reason_text, r'coding|modifier|dx|icd|cpt|documentation|medical record|bundl') THEN 'CODING_DOC'
-      WHEN REGEXP_CONTAINS(denial_reason_text, r'timely|filing|limit|late') THEN 'TIMELY_FILING'
-      WHEN REGEXP_CONTAINS(denial_reason_text, r'duplicate|dup') THEN 'DUPLICATE'
-      WHEN REGEXP_CONTAINS(denial_reason_text, r'contract|noncovered|non-covered|bundled per contract|write off') THEN 'CONTRACTUAL'
-      ELSE 'OTHER_PROXY'
-    END AS denial_bucket
-  FROM denied
-  WHERE denial_flag
-),
-weighted AS (
-  SELECT
-    *,
-    CASE
-      WHEN denial_bucket IN ('AUTH_ELIG', 'CODING_DOC', 'TIMELY_FILING', 'DUPLICATE') THEN 1.0
-      WHEN denial_bucket = 'CONTRACTUAL' THEN 0.2
-      ELSE 0.6
-    END AS preventability_weight
-  FROM bucketed
-)
-SELECT
-  denial_bucket,
-  denial_reason_raw AS denial_reason,
-  SUM(denied_amount) AS denied_amount_sum,
-  COUNT(*) AS denial_count,
-  SAFE_DIVIDE(SUM(denied_amount), COUNT(*)) AS avg_denied_amount,
-  ANY_VALUE(preventability_weight) AS preventability_weight,
-  SUM(denied_amount) * ANY_VALUE(preventability_weight) AS priority_score,
-  'MISSING_IN_MART' AS payer_dim_status
-FROM weighted
-GROUP BY 1, 2
-ORDER BY priority_score DESC
-LIMIT @summary_limit
-"""
-
-
-WORKQUEUE_SQL = """
-WITH base AS (
-  SELECT
-    CAST(clm_id AS STRING) AS claim_id,
-    DATE_SUB(CURRENT_DATE(), INTERVAL CAST(COALESCE(aging_days, 0) AS INT64) DAY) AS service_date,
-    COALESCE(top_denial_group, top_denial_prcsg, 'UNSPECIFIED') AS denial_reason_raw,
-    LOWER(
-      CONCAT(
-        COALESCE(top_denial_group, ''),
-        ' ',
-        COALESCE(top_next_best_action, ''),
-        ' ',
-        COALESCE(top_denial_prcsg, '')
-      )
-    ) AS denial_reason_text,
-    COALESCE(top_denial_group, 'UNSPECIFIED') AS facility_or_service_line,
-    COALESCE(top_denial_prcsg, '') AS denial_code,
-    COALESCE(denied_potential_allowed_proxy_amt, 0.0) AS denied_amount,
-    COALESCE(p_denial, 0.0) AS p_denial
-  FROM `{source_fqn}`
+  WHERE CAST(COALESCE(aging_days, 0) AS INT64) BETWEEN @min_aging_days AND (@min_aging_days + @lookback_days)
 ),
 denied AS (
   SELECT
@@ -146,35 +76,21 @@ SELECT
   denial_bucket,
   denied_amount,
   preventability_weight,
-  denied_amount * preventability_weight AS row_priority,
-  CASE
-    WHEN denial_bucket = 'AUTH_ELIG' THEN 'Eligibility/Auth team'
-    WHEN denial_bucket = 'CODING_DOC' THEN 'Coding/CDI'
-    WHEN denial_bucket = 'TIMELY_FILING' THEN 'Billing'
-    WHEN denial_bucket = 'DUPLICATE' THEN 'Billing'
-    WHEN denial_bucket = 'CONTRACTUAL' THEN 'Contracting/RCM lead'
-    ELSE 'RCM analyst review'
-  END AS owner,
-  CASE
-    WHEN denial_bucket = 'AUTH_ELIG' THEN 'Verify eligibility/auth; obtain auth; rebill'
-    WHEN denial_bucket = 'CODING_DOC' THEN 'Coding review; validate modifiers/diagnoses; resubmit'
-    WHEN denial_bucket = 'TIMELY_FILING' THEN 'Validate filing date; appeal if eligible; write-off if expired'
-    WHEN denial_bucket = 'DUPLICATE' THEN 'Confirm duplicate; adjust/void as needed'
-    WHEN denial_bucket = 'CONTRACTUAL' THEN 'Confirm contract terms; route non-recoverable to write-off policy'
-    ELSE 'Manual triage; classify reason; assign owner'
-  END AS next_action,
-  CASE
-    WHEN denial_bucket = 'AUTH_ELIG' THEN 'Auth number, eligibility response'
-    WHEN denial_bucket = 'CODING_DOC' THEN 'Coding notes, op note, medical record excerpt'
-    WHEN denial_bucket = 'TIMELY_FILING' THEN 'Filing limit, submission timestamps'
-    WHEN denial_bucket = 'DUPLICATE' THEN 'Claim history, matching identifiers'
-    WHEN denial_bucket = 'CONTRACTUAL' THEN 'Contract excerpt, allowed schedule'
-    ELSE 'Denial reason detail, line notes, routing owner'
-  END AS evidence_needed,
-  'MISSING_IN_MART' AS payer_dim_status
+  denied_amount * preventability_weight AS row_priority
 FROM weighted
-ORDER BY row_priority DESC
-LIMIT @workqueue_size
+ORDER BY service_date DESC, row_priority DESC
+"""
+
+
+MIN_AGING_SQL = """
+SELECT
+  MIN(CAST(COALESCE(aging_days, 0) AS INT64)) AS min_aging_days
+FROM `{source_fqn}`
+WHERE
+  COALESCE(p_denial, 0.0) > 0
+  OR COALESCE(top_denial_prcsg, '') != ''
+  OR COALESCE(top_denial_group, 'UNSPECIFIED') != 'UNSPECIFIED'
+  OR COALESCE(denied_potential_allowed_proxy_amt, 0.0) > 0
 """
 
 
@@ -646,6 +562,168 @@ def _visual_summary_html(summary_df: pd.DataFrame, workqueue_size: int) -> str:
     return kpi_html + table_html + bars_html
 
 
+OWNER_MAP = {
+    "AUTH_ELIG": "Eligibility/Auth team",
+    "CODING_DOC": "Coding/CDI",
+    "TIMELY_FILING": "Billing",
+    "DUPLICATE": "Billing",
+    "CONTRACTUAL": "Contracting/RCM lead",
+    "OTHER_PROXY": "RCM analyst review",
+}
+
+ACTION_MAP = {
+    "AUTH_ELIG": "Verify eligibility/auth; obtain auth; rebill",
+    "CODING_DOC": "Coding review; validate modifiers/diagnoses; resubmit",
+    "TIMELY_FILING": "Validate filing date; appeal if eligible; write-off if expired",
+    "DUPLICATE": "Confirm duplicate; adjust/void as needed",
+    "CONTRACTUAL": "Confirm contract terms; route non-recoverable to write-off policy",
+    "OTHER_PROXY": "Manual triage; classify reason; assign owner",
+}
+
+EVIDENCE_MAP = {
+    "AUTH_ELIG": "Auth number, eligibility response",
+    "CODING_DOC": "Coding notes, op note, medical record excerpt",
+    "TIMELY_FILING": "Filing limit, submission timestamps",
+    "DUPLICATE": "Claim history, matching identifiers",
+    "CONTRACTUAL": "Contract excerpt, allowed schedule",
+    "OTHER_PROXY": "Denial reason detail, line notes, routing owner",
+}
+
+
+def _with_dataset_week_keys(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    out["service_date"] = pd.to_datetime(out["service_date"])
+    out["dataset_week_start"] = out["service_date"] - pd.to_timedelta(out["service_date"].dt.weekday, unit="D")
+    out["dataset_week_key"] = out["dataset_week_start"].dt.strftime("%Y-%m-%d")
+    return out
+
+
+def _build_summary(current_df: pd.DataFrame, summary_limit: int) -> pd.DataFrame:
+    grouped = (
+        current_df.groupby(["denial_bucket", "denial_reason"], as_index=False)
+        .agg(
+            denied_amount_sum=("denied_amount", "sum"),
+            denial_count=("claim_id", "count"),
+            avg_denied_amount=("denied_amount", "mean"),
+            preventability_weight=("preventability_weight", "first"),
+            priority_score=("row_priority", "sum"),
+        )
+        .sort_values(
+            ["priority_score", "denied_amount_sum", "denial_bucket", "denial_reason"],
+            ascending=[False, False, True, True],
+            kind="mergesort",
+        )
+        .head(summary_limit)
+    )
+    grouped["payer_dim_status"] = "MISSING_IN_MART"
+    return grouped[
+        [
+            "denial_bucket",
+            "denial_reason",
+            "denied_amount_sum",
+            "denial_count",
+            "avg_denied_amount",
+            "preventability_weight",
+            "priority_score",
+            "payer_dim_status",
+        ]
+    ]
+
+
+def _build_workqueue(current_df: pd.DataFrame, workqueue_size: int) -> pd.DataFrame:
+    workqueue = (
+        current_df.sort_values(
+            ["row_priority", "denied_amount", "claim_id"],
+            ascending=[False, False, True],
+            kind="mergesort",
+        )
+        .head(workqueue_size)
+        .copy()
+    )
+    workqueue["owner"] = workqueue["denial_bucket"].map(OWNER_MAP).fillna("RCM analyst review")
+    workqueue["next_action"] = workqueue["denial_bucket"].map(ACTION_MAP).fillna("Manual triage; classify reason; assign owner")
+    workqueue["evidence_needed"] = workqueue["denial_bucket"].map(EVIDENCE_MAP).fillna("Denial reason detail, line notes, routing owner")
+    workqueue["payer_dim_status"] = "MISSING_IN_MART"
+    return workqueue[
+        [
+            "claim_id",
+            "service_date",
+            "dataset_week_key",
+            "denial_reason",
+            "denial_bucket",
+            "denied_amount",
+            "preventability_weight",
+            "row_priority",
+            "owner",
+            "next_action",
+            "evidence_needed",
+            "payer_dim_status",
+        ]
+    ]
+
+
+def _build_stability(current_df: pd.DataFrame, prior_df: pd.DataFrame) -> tuple[pd.DataFrame, str]:
+    current = current_df.groupby("denial_bucket", as_index=False).agg(current_priority_score=("row_priority", "sum"))
+    prior = prior_df.groupby("denial_bucket", as_index=False).agg(prior_priority_score=("row_priority", "sum"))
+
+    merged = current.merge(prior, on="denial_bucket", how="outer").fillna(0.0)
+    merged["delta_priority_score"] = merged["current_priority_score"] - merged["prior_priority_score"]
+
+    current_rank_map = (
+        current.sort_values(["current_priority_score", "denial_bucket"], ascending=[False, True], kind="mergesort")
+        .reset_index(drop=True)
+        .assign(current_rank=lambda d: d.index + 1)
+    )[["denial_bucket", "current_rank"]]
+    prior_rank_map = (
+        prior.sort_values(["prior_priority_score", "denial_bucket"], ascending=[False, True], kind="mergesort")
+        .reset_index(drop=True)
+        .assign(prior_rank=lambda d: d.index + 1)
+    )[["denial_bucket", "prior_rank"]]
+    merged = merged.merge(current_rank_map, on="denial_bucket", how="left").merge(prior_rank_map, on="denial_bucket", how="left")
+
+    merged["rank_delta"] = merged["prior_rank"] - merged["current_rank"]
+    current_total = float(merged["current_priority_score"].sum())
+    prior_total = float(merged["prior_priority_score"].sum())
+    merged["current_share"] = merged["current_priority_score"] / current_total if current_total > 0 else 0.0
+    merged["prior_share"] = merged["prior_priority_score"] / prior_total if prior_total > 0 else 0.0
+    merged["share_delta"] = merged["current_share"] - merged["prior_share"]
+
+    merged = merged.sort_values(["current_priority_score", "denial_bucket"], ascending=[False, True], kind="mergesort")
+
+    current_top2 = set(
+        merged[merged["current_priority_score"] > 0]
+        .sort_values(["current_priority_score", "denial_bucket"], ascending=[False, True], kind="mergesort")
+        .head(2)["denial_bucket"]
+        .tolist()
+    )
+    prior_top2 = set(
+        merged[merged["prior_priority_score"] > 0]
+        .sort_values(["prior_priority_score", "denial_bucket"], ascending=[False, True], kind="mergesort")
+        .head(2)["denial_bucket"]
+        .tolist()
+    )
+    overlap = len(current_top2.intersection(prior_top2))
+    overlap_text = f"TOP2_OVERLAP={overlap}/2"
+
+    return (
+        merged[
+            [
+                "denial_bucket",
+                "current_priority_score",
+                "prior_priority_score",
+                "delta_priority_score",
+                "current_rank",
+                "prior_rank",
+                "rank_delta",
+                "current_share",
+                "prior_share",
+                "share_delta",
+            ]
+        ],
+        overlap_text,
+    )
+
+
 def _run_query(client: bigquery.Client, sql: str, params: list[bigquery.ScalarQueryParameter]) -> pd.DataFrame:
     job_config = bigquery.QueryJobConfig(query_parameters=params)
     return client.query(sql, job_config=job_config).result().to_dataframe()
@@ -656,6 +734,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project", default=os.getenv("BQ_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT") or "rcm-flagship")
     parser.add_argument("--dataset", default=os.getenv("BQ_DATASET_ID") or "rcm")
     parser.add_argument("--relation", default="mart_workqueue_claims")
+    parser.add_argument(
+        "--as-of-date",
+        default=None,
+        help="Optional filter anchor (YYYY-MM-DD). If provided, select dataset weeks <= this derived week key.",
+    )
+    parser.add_argument("--lookback-days", type=int, default=14, help="Window size (days) for selecting current/prior weeks from latest available service_date.")
     parser.add_argument("--out", default="exports")
     parser.add_argument("--workqueue-size", type=int, default=25)
     parser.add_argument("--summary-limit", type=int, default=50)
@@ -681,17 +765,26 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     source_fqn = f"{args.project}.{args.dataset}.{args.relation}"
+    as_of_date = pd.to_datetime(args.as_of_date).date() if args.as_of_date else None
+    query_anchor_date = as_of_date or date.today()
 
-    summary_sql = SUMMARY_SQL.format(source_fqn=source_fqn)
-    workqueue_sql = WORKQUEUE_SQL.format(source_fqn=source_fqn)
+    min_aging_sql = MIN_AGING_SQL.format(source_fqn=source_fqn)
+    detail_sql = DETAIL_SQL.format(source_fqn=source_fqn)
 
     if args.dry_run_sql:
         print("-- SOURCE RELATION --")
         print(source_fqn)
-        print("\n-- SUMMARY SQL --")
-        print(summary_sql)
-        print("\n-- WORKQUEUE SQL --")
-        print(workqueue_sql)
+        print(f"\n-- ANCHOR_MODE --\n{'AS_OF_DATE_FILTERED' if as_of_date else 'DATASET_MAX_WEEK'}")
+        print(f"\n-- QUERY_ANCHOR_DATE --\n{query_anchor_date}")
+        if as_of_date:
+            print(f"\n-- AS_OF_DATE_FILTER --\n{as_of_date}")
+        print(f"\n-- LOOKBACK_DAYS --\n{args.lookback_days}")
+        print("\n-- MIN AGING SQL --")
+        print(min_aging_sql)
+        print("\n-- DETAIL SQL --")
+        print(detail_sql)
+        print("\n-- OUTPUTS --")
+        print("summary/workqueue/stability are derived in Python from DETAIL SQL result.")
         return 0
 
     out_dir = Path(args.out)
@@ -700,26 +793,79 @@ def main() -> int:
     docs_dir.mkdir(parents=True, exist_ok=True)
 
     client = bigquery.Client(project=args.project)
+    min_aging_df = _run_query(client, min_aging_sql, [])
+    min_aging_days = int(min_aging_df.iloc[0]["min_aging_days"]) if not min_aging_df.empty else None
+    if min_aging_days is None:
+        raise RuntimeError("No denied rows found to anchor current period.")
 
-    summary_df = _run_query(
+    detail_df = _run_query(
         client,
-        summary_sql,
-        [bigquery.ScalarQueryParameter("summary_limit", "INT64", args.summary_limit)],
+        detail_sql,
+        [
+            bigquery.ScalarQueryParameter("as_of_date", "DATE", query_anchor_date),
+            bigquery.ScalarQueryParameter("min_aging_days", "INT64", min_aging_days),
+            bigquery.ScalarQueryParameter("lookback_days", "INT64", args.lookback_days),
+        ],
     )
-    workqueue_df = _run_query(
-        client,
-        workqueue_sql,
-        [bigquery.ScalarQueryParameter("workqueue_size", "INT64", args.workqueue_size)],
+    if detail_df.empty:
+        raise RuntimeError("No denied rows returned for the selected anchored window.")
+
+    detail_df = _with_dataset_week_keys(detail_df)
+    all_detail_df = detail_df.copy()
+    max_service_date = detail_df["service_date"].max()
+    window_start = max_service_date - pd.Timedelta(days=args.lookback_days)
+    window_df = detail_df[(detail_df["service_date"] >= window_start) & (detail_df["service_date"] <= max_service_date)].copy()
+    if window_df.empty:
+        window_df = detail_df.copy()
+
+    detail_df = window_df
+    anchor_mode = "DATASET_MAX_WEEK"
+    week_order = detail_df[["dataset_week_start", "dataset_week_key"]].drop_duplicates().sort_values("dataset_week_start")
+    week_keys = week_order["dataset_week_key"].tolist()
+    if as_of_date:
+        as_of_week_start = pd.Timestamp(as_of_date) - pd.to_timedelta(pd.Timestamp(as_of_date).weekday(), unit="D")
+        as_of_week_key = as_of_week_start.strftime("%Y-%m-%d")
+        week_keys = [wk for wk in week_keys if wk <= as_of_week_key]
+        anchor_mode = "AS_OF_DATE_FILTERED"
+
+    if len(week_keys) < 2:
+        all_week_order = (
+            all_detail_df[["dataset_week_start", "dataset_week_key"]]
+            .drop_duplicates()
+            .sort_values("dataset_week_start")
+        )
+        all_week_keys = all_week_order["dataset_week_key"].tolist()
+        if as_of_date:
+            all_week_keys = [wk for wk in all_week_keys if wk <= as_of_week_key]
+        week_keys = all_week_keys
+
+    if not week_keys:
+        raise RuntimeError("No comparable dataset_week_key values found.")
+
+    current_dataset_week_key = week_keys[-1]
+    prior_dataset_week_key = week_keys[-2] if len(week_keys) > 1 else ""
+
+    current_df = detail_df[detail_df["dataset_week_key"] == current_dataset_week_key].copy()
+    prior_df = (
+        detail_df[detail_df["dataset_week_key"] == prior_dataset_week_key].copy()
+        if prior_dataset_week_key
+        else detail_df.head(0).copy()
     )
+
+    summary_df = _build_summary(current_df, args.summary_limit)
+    workqueue_df = _build_workqueue(current_df, args.workqueue_size)
+    stability_df, top2_overlap = _build_stability(current_df, prior_df)
 
     summary_path = out_dir / "denials_triage_summary_v1.csv"
     workqueue_path = out_dir / "denials_workqueue_v1.csv"
+    stability_path = out_dir / "denials_stability_v1.csv"
     brief_path = docs_dir / "denials_triage_brief_v1.md"
     brief_html_path = docs_dir / "denials_triage_brief_v1.html"
     teaching_html_path = out_dir / "denials_triage_brief_v1_teaching.html"
 
     summary_df.to_csv(summary_path, index=False)
     workqueue_df.to_csv(workqueue_path, index=False)
+    stability_df.to_csv(stability_path, index=False)
     brief_markdown = _brief_markdown(source_fqn, summary_df, workqueue_df, args.workqueue_size)
     brief_path.write_text(brief_markdown, encoding="utf-8")
 
@@ -740,8 +886,15 @@ def main() -> int:
 
     print(f"SOURCE_RELATION={source_fqn}")
     print(f"SOURCE_GRAIN=claim-level ({args.relation})")
+    print(f"MIN_AGING_DAYS={min_aging_days}")
+    print(f"ANCHOR_MODE={anchor_mode}")
+    print(f"QUERY_ANCHOR_DATE={query_anchor_date}")
+    print(f"CURRENT_DATASET_WEEK_KEY={current_dataset_week_key}")
+    print(f"PRIOR_DATASET_WEEK_KEY={prior_dataset_week_key if prior_dataset_week_key else 'NONE'}")
+    print(top2_overlap)
     print(f"WROTE={summary_path}")
     print(f"WROTE={workqueue_path}")
+    print(f"WROTE={stability_path}")
     print(f"WROTE={brief_path}")
     if args.write_html:
         print(f"WROTE={brief_html_path}")
