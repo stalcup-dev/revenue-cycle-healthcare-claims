@@ -363,6 +363,53 @@ def _to_html_document(title: str, body_html: str) -> str:
     }}
     a {{ color: #0969da; text-decoration: none; }}
     a:hover {{ text-decoration: underline; }}
+    .kpi-grid {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px 0 18px 0;
+    }}
+    .kpi {{
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }}
+    .kpi-label {{
+      font-size: 12px;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }}
+    .kpi-value {{
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+    }}
+    .priority-bars {{
+      margin: 10px 0 16px 0;
+    }}
+    .priority-row {{
+      margin: 8px 0;
+    }}
+    .priority-label {{
+      font-size: 13px;
+      margin-bottom: 2px;
+      color: #24292f;
+    }}
+    .priority-track {{
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: #eaeef2;
+      border: 1px solid #d0d7de;
+      overflow: hidden;
+    }}
+    .priority-fill {{
+      height: 100%;
+      background: #0969da;
+    }}
   </style>
 </head>
 <body>
@@ -535,6 +582,70 @@ def _teaching_markdown(
     ) + "\n"
 
 
+def _visual_summary_html(summary_df: pd.DataFrame, workqueue_size: int) -> str:
+    top5 = summary_df.head(5).copy()
+    total_priority = float(summary_df["priority_score"].sum()) if not summary_df.empty else 0.0
+    top2_priority = float(summary_df.head(2)["priority_score"].sum()) if not summary_df.empty else 0.0
+    top2_share = (top2_priority / total_priority * 100.0) if total_priority > 0 else 0.0
+    max_priority = float(top5["priority_score"].max()) if not top5.empty else 0.0
+
+    kpi_html = f"""
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-label">Top 2 share of priority</div>
+    <div class="kpi-value">{top2_share:.1f}%</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total weighted exposure</div>
+    <div class="kpi-value">{escape(_fmt_money(total_priority))}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Workqueue size</div>
+    <div class="kpi-value">{workqueue_size}</div>
+  </div>
+</div>
+"""
+
+    table_rows: list[str] = []
+    bars: list[str] = []
+    for idx, (_, row) in enumerate(top5.iterrows(), start=1):
+        priority = float(row["priority_score"])
+        denied_amount = float(row["denied_amount_sum"])
+        denied_count = int(row["denial_count"])
+        width_pct = (priority / max_priority * 100.0) if max_priority > 0 else 0.0
+        label = f"{row['denial_bucket']} / {row['denial_reason']}"
+
+        table_rows.append(
+            "<tr>"
+            f"<td>{idx}</td>"
+            f"<td>{escape(str(row['denial_bucket']))}</td>"
+            f"<td>{escape(str(row['denial_reason']))}</td>"
+            f"<td>{escape(_fmt_money(denied_amount))}</td>"
+            f"<td>{denied_count:,}</td>"
+            f"<td>{escape(_fmt_money(priority))}</td>"
+            "</tr>"
+        )
+        bars.append(
+            f"""
+<div class="priority-row">
+  <div class="priority-label">{escape(label)} ({escape(_fmt_money(priority))})</div>
+  <div class="priority-track"><div class="priority-fill" style="width:{width_pct:.1f}%"></div></div>
+</div>
+"""
+        )
+
+    table_html = (
+        "<h2>Top Drivers</h2>"
+        "<table><thead><tr>"
+        "<th>Rank</th><th>Bucket</th><th>Reason</th><th>Denied $</th><th>Count</th><th>Priority score</th>"
+        "</tr></thead><tbody>"
+        + "".join(table_rows)
+        + "</tbody></table>"
+    )
+    bars_html = "<h3>Priority bars</h3><div class=\"priority-bars\">" + "".join(bars) + "</div>"
+    return kpi_html + table_html + bars_html
+
+
 def _run_query(client: bigquery.Client, sql: str, params: list[bigquery.ScalarQueryParameter]) -> pd.DataFrame:
     job_config = bigquery.QueryJobConfig(query_parameters=params)
     return client.query(sql, job_config=job_config).result().to_dataframe()
@@ -613,8 +724,10 @@ def main() -> int:
     brief_path.write_text(brief_markdown, encoding="utf-8")
 
     if args.write_html:
+        visuals_html = _visual_summary_html(summary_df, args.workqueue_size)
+        body_html = visuals_html + _markdown_to_html(brief_markdown)
         brief_html_path.write_text(
-            _to_html_document("Denials Triage Brief v1", _markdown_to_html(brief_markdown)),
+            _to_html_document("Denials Triage Brief v1", body_html),
             encoding="utf-8",
         )
 

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Denials Triage Brief v1</title>
+  <style>
+    body {
+      max-width: 960px;
+      margin: 24px auto;
+      padding: 0 16px 40px 16px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+      color: #111;
+    }
+    h1, h2, h3 { margin-top: 1.2em; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0 18px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #d0d7de;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f6f8fa; }
+    code {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      padding: 0 4px;
+      font-size: 90%;
+    }
+    pre {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 10px;
+      overflow-x: auto;
+    }
+    a { color: #0969da; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px 0 18px 0;
+    }
+    .kpi {
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }
+    .kpi-label {
+      font-size: 12px;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .priority-bars {
+      margin: 10px 0 16px 0;
+    }
+    .priority-row {
+      margin: 8px 0;
+    }
+    .priority-label {
+      font-size: 13px;
+      margin-bottom: 2px;
+      color: #24292f;
+    }
+    .priority-track {
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: #eaeef2;
+      border: 1px solid #d0d7de;
+      overflow: hidden;
+    }
+    .priority-fill {
+      height: 100%;
+      background: #0969da;
+    }
+  </style>
+</head>
+<body>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-label">Top 2 share of priority</div>
+    <div class="kpi-value">86.7%</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total weighted exposure</div>
+    <div class="kpi-value">$14,337,898</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Workqueue size</div>
+    <div class="kpi-value">25</div>
+  </div>
+</div>
+<h2>Top Drivers</h2><table><thead><tr><th>Rank</th><th>Bucket</th><th>Reason</th><th>Denied $</th><th>Count</th><th>Priority score</th></tr></thead><tbody><tr><td>1</td><td>AUTH_ELIG</td><td>Noncovered</td><td>$8,349,240</td><td>181,670</td><td>$8,349,240</td></tr><tr><td>2</td><td>OTHER_PROXY</td><td>Other Denial</td><td>$6,800,080</td><td>311,139</td><td>$4,080,048</td></tr><tr><td>3</td><td>OTHER_PROXY</td><td>Allowed</td><td>$2,575,580</td><td>4,075,784</td><td>$1,545,348</td></tr><tr><td>4</td><td>CODING_DOC</td><td>Medically Unnecessary</td><td>$264,890</td><td>42,645</td><td>$264,890</td></tr><tr><td>5</td><td>DUPLICATE</td><td>Administrative</td><td>$34,410</td><td>41,227</td><td>$34,410</td></tr></tbody></table><h3>Priority bars</h3><div class="priority-bars">
+<div class="priority-row">
+  <div class="priority-label">AUTH_ELIG / Noncovered ($8,349,240)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:100.0%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">OTHER_PROXY / Other Denial ($4,080,048)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:48.9%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">OTHER_PROXY / Allowed ($1,545,348)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:18.5%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">CODING_DOC / Medically Unnecessary ($264,890)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:3.2%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">DUPLICATE / Administrative ($34,410)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:0.4%"></div></div>
+</div>
+</div><h1>Denials Triage Brief v1</h1>
+<p>Source relation: <code>rcm-flagship.rcm.mart_workqueue_claims</code> (dbt-transformed mart only).</p>
+<h2>Decision</h2>
+<p>Focus this week on the top 2 denial buckets by priority score (covers 86.7% of weighted denial exposure).</p>
+<h2>Status + Reason</h2>
+<ul>
+<li>Status: LIMITED_CONTEXT</li>
+<li>Reason: Payer identity is unavailable in marts; denial reason and denied dollar values are proxy-derived for directional triage.</li>
+</ul>
+<h2>Top drivers (priority-ranked)</h2>
+<ul>
+<li><code>AUTH_ELIG</code> / <code>Noncovered</code>: $8,349,240 across 181670 claims (priority $8,349,240).</li>
+<li><code>OTHER_PROXY</code> / <code>Other Denial</code>: $6,800,080 across 311139 claims (priority $4,080,048).</li>
+<li><code>OTHER_PROXY</code> / <code>Allowed</code>: $2,575,580 across 4075784 claims (priority $1,545,348).</li>
+<li><code>CODING_DOC</code> / <code>Medically Unnecessary</code>: $264,890 across 42645 claims (priority $264,890).</li>
+<li><code>DUPLICATE</code> / <code>Administrative</code>: $34,410 across 41227 claims (priority $34,410).</li>
+</ul>
+<h2>This week actions (reversible)</h2>
+<ul>
+<li>Validate top denial buckets against sample claim evidence before scaling any process changes.</li>
+<li>Route top workqueue items to owner queues with evidence requirements attached.</li>
+<li>Re-run this triage next cycle and compare top-2 stability before committing irreversible workflow changes.</li>
+</ul>
+<h2>Workqueue (25 claims)</h2>
+<ul>
+<li>Output: <a href="../exports/denials_workqueue_v1.csv"><code>exports/denials_workqueue_v1.csv</code></a></li>
+<li>Summary: <a href="../exports/denials_triage_summary_v1.csv"><code>exports/denials_triage_summary_v1.csv</code></a></li>
+<li>Eligibility/Auth team: 24 claims in the top 25.</li>
+<li>RCM analyst review: 1 claims in the top 25.</li>
+</ul>
+<h2>Falsification</h2>
+<p>If next cycle the top-2 buckets do not remain in the top set or weighted exposure shifts materially, we change focus and re-prioritize.</p>
+<h2>Data Gaps / Next Data Needed</h2>
+<ul>
+<li>Missing payer identity dimension (plan/carrier): not present in current marts.</li>
+<li><code>service_date</code> is estimated from <code>aging_days</code> (proxy).</li>
+<li><code>denied_amount</code> uses <code>denied_potential_allowed_proxy_amt</code> (proxy).</li>
+<li>Needed in marts: <code>payer_id</code> / <code>payer_name</code>, actual <code>service_from_date</code>, and actual denial codes (<code>CARC</code>/<code>RARC</code>) if available.</li>
+</ul>
+<h2>Column mapping (required conceptual fields)</h2>
+<table>
+<thead><tr><th>Conceptual field</th><th>Source column used</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>claim_id</td><td><code>clm_id</code></td><td>direct claim identifier</td></tr>
+<tr><td>payer_dim_status</td><td>constant <code>MISSING_IN_MART</code></td><td>payer identity is unavailable in selected marts</td></tr>
+<tr><td>denial_flag</td><td>derived from <code>p_denial/top_denial_prcsg/top_denial_group/denied_potential_allowed_proxy_amt</code></td><td>deterministic OR-rule</td></tr>
+<tr><td>denial_reason</td><td><code>top_denial_group</code> fallback <code>top_denial_prcsg</code></td><td>proxy reason when detailed reason absent</td></tr>
+<tr><td>denied_amount</td><td><code>denied_potential_allowed_proxy_amt</code></td><td>proxy denied amount</td></tr>
+<tr><td>service_date</td><td><code>DATE_SUB(CURRENT_DATE(), INTERVAL aging_days DAY)</code></td><td>estimated service date proxy</td></tr>
+<tr><td>facility_or_service_line</td><td><code>top_denial_group</code></td><td>service-line proxy</td></tr>
+</tbody></table>
+<p>Note: This brief intentionally excludes payer-level conclusions because payer identity is missing in current marts.</p>
+</body>
+</html>
