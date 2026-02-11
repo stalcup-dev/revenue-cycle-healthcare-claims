@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Denials Triage Brief v1</title>
+  <style>
+    body {
+      max-width: 960px;
+      margin: 24px auto;
+      padding: 0 16px 40px 16px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+      color: #111;
+    }
+    h1, h2, h3 { margin-top: 1.2em; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0 18px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #d0d7de;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f6f8fa; }
+    code {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      padding: 0 4px;
+      font-size: 90%;
+    }
+    pre {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 10px;
+      overflow-x: auto;
+    }
+    a { color: #0969da; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px 0 18px 0;
+    }
+    .kpi {
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }
+    .kpi-label {
+      font-size: 12px;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .priority-bars {
+      margin: 10px 0 16px 0;
+    }
+    .priority-row {
+      margin: 8px 0;
+    }
+    .priority-label {
+      font-size: 13px;
+      margin-bottom: 2px;
+      color: #24292f;
+    }
+    .priority-track {
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: #eaeef2;
+      border: 1px solid #d0d7de;
+      overflow: hidden;
+    }
+    .priority-fill {
+      height: 100%;
+      background: #0969da;
+    }
+    .stacked-bar {
+      display: flex;
+      width: 100%;
+      height: 22px;
+      border: 1px solid #d0d7de;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #eaeef2;
+      margin: 8px 0 10px 0;
+    }
+    .stacked-segment {
+      height: 100%;
+    }
+    .stacked-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #24292f;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-label">Top 2 share of priority</div>
+    <div class="kpi-value">89.0%</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total weighted exposure</div>
+    <div class="kpi-value">$27,050</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Workqueue size</div>
+    <div class="kpi-value">25</div>
+  </div>
+</div>
+<h2>Top Drivers</h2><table><thead><tr><th>Rank</th><th>Bucket</th><th>Reason</th><th>Denied $</th><th>Count</th><th>Priority score</th></tr></thead><tbody><tr><td>1</td><td>AUTH_ELIG</td><td>Noncovered</td><td>$17,600</td><td>310</td><td>$17,600</td></tr><tr><td>2</td><td>OTHER_PROXY</td><td>Other Denial</td><td>$10,790</td><td>471</td><td>$6,474</td></tr><tr><td>3</td><td>OTHER_PROXY</td><td>Allowed</td><td>$4,120</td><td>5,716</td><td>$2,472</td></tr><tr><td>4</td><td>CODING_DOC</td><td>Medically Unnecessary</td><td>$330</td><td>70</td><td>$330</td></tr><tr><td>5</td><td>CODING_DOC</td><td>Bundled / No Pay</td><td>$90</td><td>2</td><td>$90</td></tr></tbody></table><h3>Priority bars</h3><div class="priority-bars">
+<div class="priority-row">
+  <div class="priority-label">AUTH_ELIG / Noncovered ($17,600)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:100.0%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">OTHER_PROXY / Other Denial ($6,474)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:36.8%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">OTHER_PROXY / Allowed ($2,472)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:14.0%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">CODING_DOC / Medically Unnecessary ($330)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:1.9%"></div></div>
+</div>
+
+<div class="priority-row">
+  <div class="priority-label">CODING_DOC / Bundled / No Pay ($90)</div>
+  <div class="priority-track"><div class="priority-fill" style="width:0.5%"></div></div>
+</div>
+</div><h2>Exposure concentration</h2><div class="stacked-bar"><div class="stacked-segment" style="width:65.06%;background:#0969da;" title="AUTH_ELIG 65.1%"></div><div class="stacked-segment" style="width:33.38%;background:#1f7a8c;" title="OTHER_PROXY 33.4%"></div><div class="stacked-segment" style="width:1.55%;background:#4f6fad;" title="CODING_DOC 1.6%"></div></div><div class="stacked-legend"><span class="legend-item"><span class="legend-swatch" style="background:#0969da;"></span>AUTH_ELIG 65.1%</span><span class="legend-item"><span class="legend-swatch" style="background:#1f7a8c;"></span>OTHER_PROXY 33.4%</span><span class="legend-item"><span class="legend-swatch" style="background:#4f6fad;"></span>CODING_DOC 1.6%</span></div><h2>Stability (Current vs Prior)</h2><p>Current dataset-week: <code>2011-02-07</code> | Prior dataset-week: <code>2011-01-31</code></p><table><thead><tr><th>denial_bucket</th><th>current_rank</th><th>prior_rank</th><th>rank_delta</th><th>current_share</th><th>prior_share</th><th>share_delta</th><th>delta_priority_score</th></tr></thead><tbody><tr><td>AUTH_ELIG</td><td>1</td><td>1</td><td>0</td><td>65.1%</td><td>63.7%</td><td>1.3%</td><td>$-2,950</td></tr><tr><td>OTHER_PROXY</td><td>2</td><td>2</td><td>0</td><td>33.4%</td><td>35.1%</td><td>-1.7%</td><td>$-2,280</td></tr><tr><td>CODING_DOC</td><td>3</td><td>3</td><td>0</td><td>1.6%</td><td>1.1%</td><td>0.5%</td><td>$70</td></tr><tr><td>DUPLICATE</td><td>4</td><td>4</td><td>0</td><td>0.0%</td><td>0.1%</td><td>-0.1%</td><td>$-30</td></tr></tbody></table><h2>OTHER_PROXY drilldown (top reasons)</h2><table><thead><tr><th>denial_reason</th><th>denied_amount_sum</th><th>denial_count</th><th>priority_score</th></tr></thead><tbody><tr><td>Other Denial</td><td>$10,790</td><td>471</td><td>$6,474</td></tr><tr><td>Allowed</td><td>$4,120</td><td>5,716</td><td>$2,472</td></tr><tr><td>Benefits Exhausted</td><td>$60</td><td>8</td><td>$36</td></tr><tr><td>Compliance</td><td>$60</td><td>9</td><td>$36</td></tr><tr><td>MSP/COB</td><td>$20</td><td>61</td><td>$12</td></tr><tr><td>Administrative</td><td>$0</td><td>18</td><td>$0</td></tr><tr><td>Unknown</td><td>$0</td><td>17</td><td>$0</td></tr></tbody></table><h2>Impact scenarios (directional)</h2><p>Directional only (proxy-based): planning signals, not forecast commitments.</p><ul><li>Top bucket (`AUTH_ELIG / Noncovered`) 10-claim reduction: about $568 weighted exposure shift.</li><li>5 percentage-point share shift in weighted exposure: about $1,352 impact.</li></ul><h1>Denials Triage Brief v1</h1>
+<p>Source relation: <code>rcm-flagship.rcm.mart_workqueue_claims</code> (dbt-transformed mart only).</p>
+<h2>Decision</h2>
+<p>Focus this week on the top 2 denial buckets by priority score (covers 89.0% of weighted denial exposure).</p>
+<h2>Status + Reason</h2>
+<ul>
+<li>Status: LIMITED_CONTEXT</li>
+<li>Reason: Payer identity is unavailable in marts; denial reason and denied dollar values are proxy-derived for directional triage.</li>
+</ul>
+<h2>Top drivers (priority-ranked)</h2>
+<ul>
+<li><code>AUTH_ELIG</code> / <code>Noncovered</code>: $17,600 across 310 claims (priority $17,600).</li>
+<li><code>OTHER_PROXY</code> / <code>Other Denial</code>: $10,790 across 471 claims (priority $6,474).</li>
+<li><code>OTHER_PROXY</code> / <code>Allowed</code>: $4,120 across 5716 claims (priority $2,472).</li>
+<li><code>CODING_DOC</code> / <code>Medically Unnecessary</code>: $330 across 70 claims (priority $330).</li>
+<li><code>CODING_DOC</code> / <code>Bundled / No Pay</code>: $90 across 2 claims (priority $90).</li>
+</ul>
+<h2>This week actions (reversible)</h2>
+<ul>
+<li>Validate top denial buckets against sample claim evidence before scaling any process changes.</li>
+<li>Route top workqueue items to owner queues with evidence requirements attached.</li>
+<li>Re-run this triage next cycle and compare top-2 stability before committing irreversible workflow changes.</li>
+</ul>
+<h2>Workqueue (25 claims)</h2>
+<ul>
+<li>Output: <a href="../exports/denials_workqueue_v1.csv"><code>exports/denials_workqueue_v1.csv</code></a></li>
+<li>Summary: <a href="../exports/denials_triage_summary_v1.csv"><code>exports/denials_triage_summary_v1.csv</code></a></li>
+<li>Eligibility/Auth team: 25 claims in the top 25.</li>
+</ul>
+<h2>Stability (Current vs Prior dataset-week)</h2>
+<ul>
+<li>Current dataset-week: <code>2011-02-07</code></li>
+<li>Prior dataset-week: <code>2011-01-31</code></li>
+</ul>
+<table>
+<thead><tr><th>denial_bucket</th><th>current_rank</th><th>prior_rank</th><th>rank_delta</th><th>current_share</th><th>prior_share</th><th>share_delta</th><th>delta_priority_score</th></tr></thead>
+<tbody>
+<tr><td>AUTH_ELIG</td><td>1</td><td>1</td><td>0</td><td>65.1%</td><td>63.7%</td><td>1.3%</td><td>$-2,950</td></tr>
+<tr><td>OTHER_PROXY</td><td>2</td><td>2</td><td>0</td><td>33.4%</td><td>35.1%</td><td>-1.7%</td><td>$-2,280</td></tr>
+<tr><td>CODING_DOC</td><td>3</td><td>3</td><td>0</td><td>1.6%</td><td>1.1%</td><td>0.5%</td><td>$70</td></tr>
+<tr><td>DUPLICATE</td><td>4</td><td>4</td><td>0</td><td>0.0%</td><td>0.1%</td><td>-0.1%</td><td>$-30</td></tr>
+</tbody></table>
+<h2>Falsification</h2>
+<p>If next cycle the top-2 buckets do not remain in the top set or weighted exposure shifts materially, we change focus and re-prioritize.</p>
+<h2>Data Gaps / Next Data Needed</h2>
+<ul>
+<li>Missing payer identity dimension (plan/carrier): not present in current marts.</li>
+<li><code>service_date</code> is estimated from <code>aging_days</code> (proxy).</li>
+<li><code>denied_amount</code> uses <code>denied_potential_allowed_proxy_amt</code> (proxy).</li>
+<li>Needed in marts: <code>payer_id</code> / <code>payer_name</code>, actual <code>service_from_date</code>, and actual denial codes (<code>CARC</code>/<code>RARC</code>) if available.</li>
+</ul>
+<h2>Column mapping (required conceptual fields)</h2>
+<table>
+<thead><tr><th>Conceptual field</th><th>Source column used</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>claim_id</td><td><code>clm_id</code></td><td>direct claim identifier</td></tr>
+<tr><td>payer_dim_status</td><td>constant <code>MISSING_IN_MART</code></td><td>payer identity is unavailable in selected marts</td></tr>
+<tr><td>denial_flag</td><td>derived from <code>p_denial/top_denial_prcsg/top_denial_group/denied_potential_allowed_proxy_amt</code></td><td>deterministic OR-rule</td></tr>
+<tr><td>denial_reason</td><td><code>top_denial_group</code> fallback <code>top_denial_prcsg</code></td><td>proxy reason when detailed reason absent</td></tr>
+<tr><td>denied_amount</td><td><code>denied_potential_allowed_proxy_amt</code></td><td>proxy denied amount</td></tr>
+<tr><td>service_date</td><td><code>DATE_SUB(CURRENT_DATE(), INTERVAL aging_days DAY)</code></td><td>estimated service date proxy</td></tr>
+<tr><td>facility_or_service_line</td><td><code>top_denial_group</code></td><td>service-line proxy</td></tr>
+</tbody></table>
+<p>Note: This brief intentionally excludes payer-level conclusions because payer identity is missing in current marts.</p>
+</body>
+</html>

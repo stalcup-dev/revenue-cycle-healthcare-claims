@@ -3,18 +3,18 @@
 Source relation: `rcm-flagship.rcm.mart_workqueue_claims` (dbt-transformed mart only).
 
 ## Decision
-Focus this week on the top 2 denial buckets by priority score (covers 86.7% of weighted denial exposure).
+Focus this week on the top 2 denial buckets by priority score (covers 89.0% of weighted denial exposure).
 
 ## Status + Reason
 - Status: LIMITED_CONTEXT
-- Reason: Payer and denial reason are proxy fields in this mart; use this brief for directional triage and owner routing.
+- Reason: Payer identity is unavailable in marts; denial reason and denied dollar values are proxy-derived for directional triage.
 
 ## Top drivers (priority-ranked)
-- `AUTH_ELIG` / `Noncovered` / `MEDICARE_FFS_PROXY`: $8,349,240 across 181670 claims (priority $8,349,240).
-- `OTHER_PROXY` / `Other Denial` / `MEDICARE_FFS_PROXY`: $6,800,080 across 311139 claims (priority $4,080,048).
-- `OTHER_PROXY` / `Allowed` / `MEDICARE_FFS_PROXY`: $2,575,580 across 4075784 claims (priority $1,545,348).
-- `CODING_DOC` / `Medically Unnecessary` / `MEDICARE_FFS_PROXY`: $264,890 across 42645 claims (priority $264,890).
-- `DUPLICATE` / `Administrative` / `MEDICARE_FFS_PROXY`: $34,410 across 41227 claims (priority $34,410).
+- `AUTH_ELIG` / `Noncovered`: $17,600 across 310 claims (priority $17,600).
+- `OTHER_PROXY` / `Other Denial`: $10,790 across 471 claims (priority $6,474).
+- `OTHER_PROXY` / `Allowed`: $4,120 across 5716 claims (priority $2,472).
+- `CODING_DOC` / `Medically Unnecessary`: $330 across 70 claims (priority $330).
+- `CODING_DOC` / `Bundled / No Pay`: $90 across 2 claims (priority $90).
 
 ## This week actions (reversible)
 - Validate top denial buckets against sample claim evidence before scaling any process changes.
@@ -24,21 +24,37 @@ Focus this week on the top 2 denial buckets by priority score (covers 86.7% of w
 ## Workqueue (25 claims)
 - Output: [`exports/denials_workqueue_v1.csv`](../exports/denials_workqueue_v1.csv)
 - Summary: [`exports/denials_triage_summary_v1.csv`](../exports/denials_triage_summary_v1.csv)
-- Eligibility/Auth team: 24 claims in the top 25.
-- RCM analyst review: 1 claims in the top 25.
+- Eligibility/Auth team: 25 claims in the top 25.
+
+## Stability (Current vs Prior dataset-week)
+- Current dataset-week: `2011-02-07`
+- Prior dataset-week: `2011-01-31`
+
+| denial_bucket | current_rank | prior_rank | rank_delta | current_share | prior_share | share_delta | delta_priority_score |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| AUTH_ELIG | 1 | 1 | 0 | 65.1% | 63.7% | 1.3% | $-2,950 |
+| OTHER_PROXY | 2 | 2 | 0 | 33.4% | 35.1% | -1.7% | $-2,280 |
+| CODING_DOC | 3 | 3 | 0 | 1.6% | 1.1% | 0.5% | $70 |
+| DUPLICATE | 4 | 4 | 0 | 0.0% | 0.1% | -0.1% | $-30 |
 
 ## Falsification
 If next cycle the top-2 buckets do not remain in the top set or weighted exposure shifts materially, we change focus and re-prioritize.
+
+## Data Gaps / Next Data Needed
+- Missing payer identity dimension (plan/carrier): not present in current marts.
+- `service_date` is estimated from `aging_days` (proxy).
+- `denied_amount` uses `denied_potential_allowed_proxy_amt` (proxy).
+- Needed in marts: `payer_id` / `payer_name`, actual `service_from_date`, and actual denial codes (`CARC`/`RARC`) if available.
 
 ## Column mapping (required conceptual fields)
 | Conceptual field | Source column used | Notes |
 |---|---|---|
 | claim_id | `clm_id` | direct claim identifier |
-| payer | constant `MEDICARE_FFS_PROXY` | payer detail unavailable in selected mart |
+| payer_dim_status | constant `MISSING_IN_MART` | payer identity is unavailable in selected marts |
 | denial_flag | derived from `p_denial/top_denial_prcsg/top_denial_group/denied_potential_allowed_proxy_amt` | deterministic OR-rule |
 | denial_reason | `top_denial_group` fallback `top_denial_prcsg` | proxy reason when detailed reason absent |
 | denied_amount | `denied_potential_allowed_proxy_amt` | proxy denied amount |
 | service_date | `DATE_SUB(CURRENT_DATE(), INTERVAL aging_days DAY)` | estimated service date proxy |
 | facility_or_service_line | `top_denial_group` | service-line proxy |
 
-Note: Denial reason and denied dollar values may be proxies depending on available columns in the selected mart.
+Note: This brief intentionally excludes payer-level conclusions because payer identity is missing in current marts.
