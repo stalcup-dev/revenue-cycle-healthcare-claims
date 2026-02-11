@@ -16,8 +16,15 @@
 - [Queue Volume Shift Brief (Notebook)](notebooks/queue_volume_shift_brief_v1.ipynb)
 - [Denials Triage Brief (PDF)](docs/denials_triage_brief_v1.pdf)
 - [Denials Triage Brief (HTML)](docs/denials_triage_brief_v1.html)
+- [Denials Triage Case Study (1 Page)](docs/CASE_STUDY_DENIALS_TRIAGE_1PAGER.md)
 - [Queue Volume Shift Playbook (1 Page)](docs/QUEUE_VOLUME_SHIFT_PLAYBOOK_1PAGE.md)
 - [Queue Brief QA Checklist](docs/QA_CHECKLIST_QUEUE_BRIEF.md)
+
+## Operator Deep Dive (Denials)
+- [Denials Triage Brief (HTML)](docs/denials_triage_brief_v1.html)
+- [Denials Weekly Runbook (1 Page)](docs/denials_triage_runbook_1page.md)
+- [Denials Workqueue Tracker Template](docs/templates/denials_workqueue_tracker_template.md)
+- [Denials Backlog (Blocked Data Gaps)](docs/tech/denials_triage_backlog.md)
 
 ## Architecture (what this project demonstrates)
 Production path: BigQuery (warehouse) -> dbt (marts) -> Tableau dashboards + Jupyter storytelling notebooks.
