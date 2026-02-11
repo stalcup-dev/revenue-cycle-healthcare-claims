@@ -14,6 +14,8 @@
 ## Start Here (2-minute path)
 - [Queue Volume Shift Brief (PDF)](docs/queue_volume_shift_brief_v1.pdf)
 - [Queue Volume Shift Brief (Notebook)](notebooks/queue_volume_shift_brief_v1.ipynb)
+- [Denials Triage Brief (PDF)](docs/denials_triage_brief_v1.pdf)
+- [Denials Triage Brief (HTML)](docs/denials_triage_brief_v1.html)
 - [Queue Volume Shift Playbook (1 Page)](docs/QUEUE_VOLUME_SHIFT_PLAYBOOK_1PAGE.md)
 - [Queue Brief QA Checklist](docs/QA_CHECKLIST_QUEUE_BRIEF.md)
 
