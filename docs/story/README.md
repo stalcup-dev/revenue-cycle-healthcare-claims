@@ -13,3 +13,9 @@ Open these in order:
 
 4) Workqueue - Top 25 prioritized preview
    - nb05_workqueue.md
+
+5) Denials Triage Pack
+   - [Denials Brief (HTML)](../denials_triage_brief_v1.html)
+   - [Weekly Runbook](../denials_triage_runbook_1page.md)
+   - [Tracker Template](../templates/denials_workqueue_tracker_template.md)
+   - [Backlog / Data Gaps](../tech/denials_triage_backlog.md)
