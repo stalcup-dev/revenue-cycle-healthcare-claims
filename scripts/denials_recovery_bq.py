@@ -146,6 +146,15 @@ def _fmt_pct(value: float) -> str:
     return f"{value * 100.0:.1f}%"
 
 
+def _safe_float(value: object, default: float = 0.0) -> float:
+    try:
+        if pd.isna(value):
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def _render_inline_no_links(text: str) -> str:
     rendered = escape(text)
     return re.sub(r"`([^`]+)`", lambda m: f"<code>{escape(m.group(1))}</code>", rendered)
@@ -364,6 +373,104 @@ def _to_html_document(title: str, markdown_text: str, shares: list[tuple[str, fl
 """
 
 
+def _build_teaching_html(
+    source_fqn: str,
+    anchor_mode: str,
+    current_week_key: str,
+    prior_week_key: str,
+    summary_df: pd.DataFrame,
+    outcomes_metrics: dict[str, float] | None,
+) -> str:
+    top_row = summary_df.iloc[0] if not summary_df.empty else None
+    worked_example = (
+        f"Top row: {top_row['denial_bucket']} / {top_row['denial_reason']} | "
+        f"count={int(top_row['denial_count'])} | priority_score={_fmt_money(float(top_row['priority_score']))}"
+        if top_row is not None
+        else "No summary rows available in this run."
+    )
+    metrics_block = (
+        f"<li>Matched claims: {int(outcomes_metrics['matched_claims'])}</li>"
+        f"<li>Recovered sum: {_fmt_money(outcomes_metrics['recovery_realized_sum'])}</li>"
+        f"<li>Top-bucket recovery rate: {_fmt_pct(outcomes_metrics['top_bucket_recovery_rate'])}</li>"
+        if outcomes_metrics is not None
+        else "<li>No outcomes file provided in this run.</li>"
+    )
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Denials Recovery Teaching Guide v1</title>
+  <style>
+    body {{ max-width: 980px; margin: 24px auto; padding: 0 16px 40px 16px; font-family: Segoe UI, Arial, sans-serif; line-height: 1.5; }}
+    table {{ border-collapse: collapse; width: 100%; margin: 10px 0 16px 0; }}
+    th, td {{ border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; }}
+    th {{ background: #f6f8fa; }}
+    code {{ background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 4px; padding: 0 4px; }}
+  </style>
+</head>
+<body>
+  <h1>Denials Recovery Teaching Guide v1</h1>
+  <h2>What this is safe for</h2>
+  <ul>
+    <li>Directional triage prioritization from dbt mart outputs.</li>
+    <li>Weekly owner routing and evidence planning.</li>
+    <li>Stability checks between current and prior dataset-week.</li>
+  </ul>
+  <h2>What this is NOT safe for</h2>
+  <ul>
+    <li>Payer-level interventions (payer identity is missing in selected marts).</li>
+    <li>Guaranteed recovery forecasting from proxy amounts.</li>
+    <li>Causal claims about denial root cause.</li>
+  </ul>
+  <h2>Decision tree</h2>
+  <ul>
+    <li>If top-2 overlap is stable, focus those buckets first.</li>
+    <li>If overlap breaks, run reversible investigation before scaling.</li>
+    <li>Re-check next dataset-week before irreversible action.</li>
+  </ul>
+  <h2>90-second talk track</h2>
+  <ul>
+    <li>Problem: limited capacity and noisy denial reason data.</li>
+    <li>Method: bucket + weighted scoring + week-over-week stability.</li>
+    <li>Decision: focus top buckets with explicit proxy guardrails.</li>
+    <li>Action: route queue with owner/evidence requirements.</li>
+    <li>Falsification: if rank/share stability changes, re-prioritize.</li>
+  </ul>
+  <h2>Hostile questions</h2>
+  <ol>
+    <li>Why no payer insights? Because payer identity is absent in this mart layer.</li>
+    <li>Is this true denied dollars? No, denied amount is proxy-derived.</li>
+    <li>Can we claim ROI? Not yet; outcomes are directional unless adjudication-sourced.</li>
+    <li>Why this week anchor? Uses dataset max week for deterministic comparisons.</li>
+    <li>How do you reduce proxy risk? Add payer_id, CARC/RARC, true service dates in marts.</li>
+  </ol>
+  <h2>Worked example</h2>
+  <p>{escape(worked_example)}</p>
+  <h2>Anchor context</h2>
+  <ul>
+    <li>ANCHOR_MODE: <code>{escape(anchor_mode)}</code></li>
+    <li>CURRENT_DATASET_WEEK_KEY: <code>{escape(current_week_key)}</code></li>
+    <li>PRIOR_DATASET_WEEK_KEY: <code>{escape(prior_week_key)}</code></li>
+    <li>Note: dataset-week is a synthetic-week anchor, not calendar operations week.</li>
+  </ul>
+  <h2>Proxy risk table</h2>
+  <table>
+    <thead><tr><th>Field</th><th>Status</th><th>Risk</th></tr></thead>
+    <tbody>
+      <tr><td>payer</td><td>MISSING_IN_MART</td><td>No payer-specific intervention claims</td></tr>
+      <tr><td>service_date</td><td>Proxy from aging_days</td><td>Use for ranking, not adjudication timing</td></tr>
+      <tr><td>denied_amount</td><td>Proxy from denied_potential_allowed_proxy_amt</td><td>Directional only</td></tr>
+    </tbody>
+  </table>
+  <h2>Outcomes snapshot</h2>
+  <ul>{metrics_block}</ul>
+  <p>Source: <code>{escape(source_fqn)}</code></p>
+</body>
+</html>
+"""
+
+
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -382,6 +489,7 @@ def _build_brief_markdown(
     aging_df: pd.DataFrame,
     stability_df: pd.DataFrame,
     top2_overlap: int,
+    outcomes_metrics: dict[str, float] | None,
 ) -> str:
     total_priority = float(summary_df["priority_score"].sum()) if not summary_df.empty else 0.0
     top2 = summary_df.head(2).copy()
@@ -481,6 +589,29 @@ def _build_brief_markdown(
         ]
     )
 
+    lines.extend(["", "## Outcome Tracking (Learning Loop)"])
+    if outcomes_metrics is None:
+        lines.extend(
+            [
+                "- No outcomes file provided yet (`--outcomes-csv` not supplied).",
+                "- Outcomes remain directional until sourced from adjudication/ERA-quality systems.",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "- Outcomes are directional unless sourced from adjudication/ERA-grade systems.",
+                f"- Outcomes rows: **{int(outcomes_metrics['outcomes_rows'])}**",
+                f"- Matched claims: **{int(outcomes_metrics['matched_claims'])}**",
+                f"- Recovery realized sum: **{_fmt_money(outcomes_metrics['recovery_realized_sum'])}**",
+                f"- Recovery realized rate: **{_fmt_pct(outcomes_metrics['recovery_realized_rate'])}**",
+                f"- Resolved rate: **{_fmt_pct(outcomes_metrics['resolved_rate'])}**",
+                f"- False positive rate: **{_fmt_pct(outcomes_metrics['false_positive_rate'])}**",
+                f"- Top-bucket recovery rate: **{_fmt_pct(outcomes_metrics['top_bucket_recovery_rate'])}**",
+                "- Guardrail: do not overclaim ROI from proxy-based outcomes.",
+            ]
+        )
+
     return "\n".join(lines).strip() + "\n"
 
 
@@ -549,6 +680,126 @@ def _compute_stability(current_df: pd.DataFrame, prior_df: pd.DataFrame) -> tupl
     return ordered, top2_overlap
 
 
+def _prepare_outcomes_input(outcomes_raw: pd.DataFrame, claim_id_col: str) -> pd.DataFrame:
+    if claim_id_col not in outcomes_raw.columns:
+        raise RuntimeError(f"Outcomes file missing claim id column: {claim_id_col}")
+    df = outcomes_raw.copy()
+    if "claim_id" not in df.columns:
+        df = df.rename(columns={claim_id_col: "claim_id"})
+    df["claim_id"] = df["claim_id"].astype(str).str.strip()
+    for col in ["resolution_status", "resolution_type", "notes"]:
+        if col not in df.columns:
+            df[col] = ""
+        df[col] = df[col].fillna("").astype(str).str.strip()
+    if "realized_recovery_amt" not in df.columns:
+        df["realized_recovery_amt"] = 0.0
+    df["realized_recovery_amt"] = pd.to_numeric(df["realized_recovery_amt"], errors="coerce").fillna(0.0)
+    if "resolved_date" not in df.columns:
+        df["resolved_date"] = pd.NaT
+    df["resolved_date"] = pd.to_datetime(df["resolved_date"], errors="coerce")
+    # Keep one deterministic row per claim_id (latest resolved_date, then status/type lexical)
+    df = df.sort_values(
+        ["claim_id", "resolved_date", "resolution_status", "resolution_type"],
+        ascending=[True, False, True, True],
+        na_position="last",
+    )
+    return df.drop_duplicates(subset=["claim_id"], keep="first").reset_index(drop=True)
+
+
+def _build_outcomes_export(
+    workqueue_out: pd.DataFrame,
+    outcomes_in: pd.DataFrame,
+    run_anchor_date: date,
+    outcomes_window_days: int,
+    top2_buckets: set[str],
+) -> tuple[pd.DataFrame, dict[str, float]]:
+    out = workqueue_out.copy()
+    out["claim_id"] = out["claim_id"].astype(str)
+    joined = out.merge(
+        outcomes_in[
+            ["claim_id", "resolution_status", "resolution_type", "resolved_date", "realized_recovery_amt", "notes"]
+        ],
+        on="claim_id",
+        how="left",
+    )
+    joined["resolved_date"] = pd.to_datetime(joined["resolved_date"], errors="coerce")
+    joined["realized_recovery_amt"] = pd.to_numeric(joined["realized_recovery_amt"], errors="coerce").fillna(0.0)
+    joined["resolution_status"] = joined["resolution_status"].fillna("").astype(str)
+    joined["resolution_type"] = joined["resolution_type"].fillna("").astype(str)
+
+    joined["is_resolved"] = joined["resolution_status"].str.upper().isin(
+        {"RECOVERED", "WRITTEN_OFF", "DENIED_FINAL"}
+    )
+    joined["is_recovered"] = (
+        joined["resolution_status"].str.upper().eq("RECOVERED")
+        & (joined["realized_recovery_amt"] > 0)
+    )
+    joined["recovery_lift_ratio"] = (
+        joined["realized_recovery_amt"] / joined["denied_amount"].replace(0, pd.NA)
+    ).fillna(0.0)
+    joined["recovery_lift_ratio"] = joined["recovery_lift_ratio"].clip(lower=0.0, upper=1.0)
+    joined["days_to_resolve"] = (
+        joined["resolved_date"] - pd.Timestamp(run_anchor_date)
+    ).dt.days
+
+    matched_mask = joined["resolution_status"].str.len() > 0
+    matched = joined[matched_mask].copy()
+    resolved_within_window = matched["days_to_resolve"].abs().le(outcomes_window_days)
+    recovered_mask = matched["is_recovered"]
+    resolved_mask = matched["is_resolved"] & resolved_within_window.fillna(False)
+    false_positive_mask = resolved_mask & (~recovered_mask)
+
+    matched_denied_sum = float(matched["denied_amount"].sum()) if not matched.empty else 0.0
+    realized_sum = float(matched.loc[recovered_mask, "realized_recovery_amt"].sum()) if not matched.empty else 0.0
+    resolved_rate = (float(resolved_mask.mean()) if len(matched) > 0 else 0.0)
+    false_positive_rate = (float(false_positive_mask.mean()) if len(matched) > 0 else 0.0)
+    recovery_realized_rate = (realized_sum / matched_denied_sum) if matched_denied_sum > 0 else 0.0
+
+    top_bucket_subset = matched[matched["denial_bucket"].isin(top2_buckets)]
+    top_bucket_recovery_rate = (
+        float(top_bucket_subset["is_recovered"].mean()) if len(top_bucket_subset) > 0 else 0.0
+    )
+
+    metrics = {
+        "outcomes_rows": float(len(outcomes_in)),
+        "matched_claims": float(len(matched)),
+        "recovery_realized_sum": realized_sum,
+        "recovery_realized_rate": recovery_realized_rate,
+        "resolved_rate": resolved_rate,
+        "false_positive_rate": false_positive_rate,
+        "top_bucket_recovery_rate": top_bucket_recovery_rate,
+    }
+
+    export_df = joined[
+        [
+            "claim_id",
+            "dataset_week_key",
+            "denial_bucket",
+            "denied_amount",
+            "recovery_priority_score",
+            "owner",
+            "resolution_status",
+            "resolution_type",
+            "resolved_date",
+            "realized_recovery_amt",
+            "is_resolved",
+            "is_recovered",
+            "recovery_lift_ratio",
+            "days_to_resolve",
+            "notes",
+        ]
+    ].copy()
+    export_df["resolved_date"] = pd.to_datetime(export_df["resolved_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    export_df["resolved_date"] = export_df["resolved_date"].fillna("")
+    export_df["is_resolved"] = export_df["is_resolved"].map({True: "Y", False: "N"})
+    export_df["is_recovered"] = export_df["is_recovered"].map({True: "Y", False: "N"})
+    export_df = export_df.sort_values(
+        ["recovery_priority_score", "claim_id"],
+        ascending=[False, True],
+    ).reset_index(drop=True)
+    return export_df, metrics
+
+
 def _write_csv(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path, index=False)
@@ -564,6 +815,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--summary-limit", type=int, default=50)
     parser.add_argument("--lookback-days", type=int, default=14)
     parser.add_argument("--as-of-date", type=str, default="", help="Optional anchor date (YYYY-MM-DD) filter.")
+    parser.add_argument("--outcomes-csv", type=str, default="", help="Optional outcomes CSV path for realized feedback metrics.")
+    parser.add_argument("--outcomes-claim-id-col", type=str, default="claim_id", help="Claim id column name in outcomes CSV.")
+    parser.add_argument("--outcomes-window-days", type=int, default=90, help="Window for recovered/resolved-within metrics.")
     parser.add_argument("--dry-run-sql", action="store_true", help="Print SQL statements only; do not execute.")
     parser.add_argument("--write-html", dest="write_html", action="store_true")
     parser.add_argument("--no-write-html", dest="write_html", action="store_false")
@@ -684,15 +938,18 @@ def main() -> int:
         ]
     ]
 
-    aging_df = _build_aging_bands(current_df)
-    stability_df, top2_overlap = _compute_stability(current_df, prior_df)
-
     out_dir = Path(args.out)
     docs_dir = Path("docs")
+    out_dir.mkdir(parents=True, exist_ok=True)
     summary_path = out_dir / "denials_recovery_summary_v1.csv"
     workqueue_path = out_dir / "denials_recovery_workqueue_v1.csv"
     aging_path = out_dir / "denials_recovery_aging_bands_v1.csv"
     stability_path = out_dir / "denials_recovery_stability_v1.csv"
+    outcomes_path = out_dir / "denials_recovery_outcomes_v1.csv"
+    teaching_html_path = out_dir / "denials_recovery_brief_v1_teaching.html"
+
+    aging_df = _build_aging_bands(current_df)
+    stability_df, top2_overlap = _compute_stability(current_df, prior_df)
 
     _write_csv(summary_out, summary_path)
     _write_csv(workqueue_out, workqueue_path)
@@ -701,6 +958,24 @@ def main() -> int:
 
     current_key_str = _dataset_week_from_value(current_dataset_week_key)
     prior_key_str = _dataset_week_from_value(prior_dataset_week_key) if prior_dataset_week_key else "NONE"
+    top2_buckets = set(summary_out.head(2)["denial_bucket"].tolist())
+    outcomes_metrics: dict[str, float] | None = None
+    if args.outcomes_csv:
+        outcomes_csv_path = Path(args.outcomes_csv)
+        if outcomes_csv_path.exists():
+            outcomes_raw = pd.read_csv(outcomes_csv_path)
+            outcomes_in = _prepare_outcomes_input(outcomes_raw, args.outcomes_claim_id_col)
+            outcomes_export, outcomes_metrics = _build_outcomes_export(
+                workqueue_out=workqueue_out,
+                outcomes_in=outcomes_in,
+                run_anchor_date=anchor_date,
+                outcomes_window_days=args.outcomes_window_days,
+                top2_buckets=top2_buckets,
+            )
+            _write_csv(outcomes_export, outcomes_path)
+        else:
+            print(f"OUTCOMES_WARNING=File not found: {outcomes_csv_path}")
+
     markdown = _build_brief_markdown(
         source_fqn=source_fqn,
         anchor_mode=anchor_mode,
@@ -711,6 +986,7 @@ def main() -> int:
         aging_df=aging_df,
         stability_df=stability_df,
         top2_overlap=top2_overlap,
+        outcomes_metrics=outcomes_metrics,
     )
 
     shares_df = (
@@ -728,6 +1004,17 @@ def main() -> int:
     brief_md_path = docs_dir / "denials_recovery_brief_v1.md"
     brief_html_path = docs_dir / "denials_recovery_brief_v1.html"
     brief_md_path.write_text(markdown, encoding="utf-8")
+    teaching_html_path.write_text(
+        _build_teaching_html(
+            source_fqn=source_fqn,
+            anchor_mode=anchor_mode,
+            current_week_key=current_key_str,
+            prior_week_key=prior_key_str,
+            summary_df=summary_out,
+            outcomes_metrics=outcomes_metrics,
+        ),
+        encoding="utf-8",
+    )
 
     if args.write_html:
         html_text = _to_html_document("Denials Recovery Opportunity Brief v1", markdown, shares)
@@ -748,17 +1035,27 @@ def main() -> int:
     print(f"CURRENT_DATASET_WEEK_KEY={current_key_str}")
     print(f"PRIOR_DATASET_WEEK_KEY={prior_key_str}")
     print(f"TOP2_OVERLAP={top2_overlap}/2")
+    if outcomes_metrics is not None:
+        print(f"OUTCOMES_ROWS={int(outcomes_metrics['outcomes_rows'])}")
+        print(f"MATCHED_CLAIMS={int(outcomes_metrics['matched_claims'])}")
+        print(f"RECOVERY_REALIZED_SUM={outcomes_metrics['recovery_realized_sum']:.2f}")
+        print(f"RECOVERY_REALIZED_RATE={outcomes_metrics['recovery_realized_rate']:.4f}")
+        print(f"RESOLVED_RATE={outcomes_metrics['resolved_rate']:.4f}")
+        print(f"FALSE_POSITIVE_RATE={outcomes_metrics['false_positive_rate']:.4f}")
+        print(f"TOP_BUCKET_RECOVERY_RATE={outcomes_metrics['top_bucket_recovery_rate']:.4f}")
     print(f"WROTE={summary_path}")
     print(f"WROTE={workqueue_path}")
     print(f"WROTE={aging_path}")
     print(f"WROTE={stability_path}")
+    if outcomes_metrics is not None:
+        print(f"WROTE={outcomes_path}")
     print(f"WROTE={brief_md_path}")
     if args.write_html:
         print(f"WROTE={brief_html_path}")
+    print(f"WROTE={teaching_html_path}")
 
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
