@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Denials Recovery Opportunity Brief v1</title>
+  <style>
+    body {
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 0 16px 40px 16px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+      color: #111;
+    }
+    h1, h2, h3 { margin-top: 1.2em; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0 18px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #d0d7de;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f6f8fa; }
+    code {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      padding: 0 4px;
+      font-size: 90%;
+    }
+    .stacked-bar {
+      display: flex;
+      width: 100%;
+      height: 24px;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0 10px 0;
+    }
+    .stacked-bar-legend {
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Denials Recovery Opportunity Brief v1</h1>
+  <h2>Exposure concentration</h2><div class="stacked-bar"><span style="width:65.18%;background:#1f77b4;display:block;height:100%;"></span><span style="width:34.82%;background:#ff7f0e;display:block;height:100%;"></span><span style="width:0.00%;background:#2ca02c;display:block;height:100%;"></span><span style="width:0.00%;background:#9467bd;display:block;height:100%;"></span></div><div class="stacked-bar-legend"><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#1f77b4;margin-right:4px;"></span>AUTH_ELIG (65.2%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#ff7f0e;margin-right:4px;"></span>OTHER_PROXY (34.8%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#2ca02c;margin-right:4px;"></span>CODING_DOC (0.0%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#9467bd;margin-right:4px;"></span>DUPLICATE (0.0%)</span></div>
+  <h1>Denials Recovery Opportunity Brief v1</h1>
+<ul>
+<li>**Source relation:** <code>rcm-flagship.rcm.mart_workqueue_claims</code> (dbt mart only)</li>
+<li>**Anchoring:** <code>DATASET_MAX_WEEK</code> | current <code>2011-02-14</code> | prior <code>2011-02-07</code></li>
+</ul>
+<h2>Decision</h2>
+<ul>
+<li>Focus this week on top 2 denial buckets by recovery priority score.</li>
+<li>Top 2 buckets represent **89.5%** of current weighted exposure.</li>
+</ul>
+<h2>Status + Reason</h2>
+<ul>
+<li>**Status:** LIMITED_CONTEXT</li>
+<li>**Reason:** Ranking is directional and proxy-based; payer identity, true service dates, and CARC/RARC are not available in this mart layer.</li>
+</ul>
+<h2>Recovery focus this week (top drivers)</h2>
+<ul>
+<li>AUTH_ELIG / Noncovered: $2,830 weighted $1,415 (53 claims)</li>
+<li>OTHER_PROXY / Other Denial: $1,760 weighted $528 (77 claims)</li>
+<li>OTHER_PROXY / Allowed: $760 weighted $228 (925 claims)</li>
+<li>CODING_DOC / Medically Unnecessary: $0 weighted $0 (10 claims)</li>
+<li>DUPLICATE / Administrative: $0 weighted $0 (5 claims)</li>
+</ul>
+<h2>Aging bands</h2>
+<table>
+<thead><tr><th>aging_band</th><th>denial_count</th><th>denied_amount_sum</th><th>priority_score_sum</th><th>priority_share</th></tr></thead>
+<tbody>
+<tr><td>&gt;90</td><td>1089</td><td>$5,350</td><td>$2,171</td><td>100.0%</td></tr>
+</tbody></table>
+<h2>Stability (Current vs Prior)</h2>
+<ul>
+<li>Top2 overlap: **2/2** buckets</li>
+</ul>
+<table>
+<thead><tr><th>denial_bucket</th><th>current_rank</th><th>prior_rank</th><th>rank_delta</th><th>current_share</th><th>prior_share</th><th>share_delta</th><th>delta_priority_score</th></tr></thead>
+<tbody>
+<tr><td>AUTH_ELIG</td><td>1</td><td>1</td><td>0</td><td>65.2%</td><td>64.9%</td><td>0.2%</td><td>$-9,465</td></tr>
+<tr><td>OTHER_PROXY</td><td>2</td><td>2</td><td>0</td><td>34.8%</td><td>33.3%</td><td>1.6%</td><td>$-4,818</td></tr>
+<tr><td>CODING_DOC</td><td>3</td><td>3</td><td>0</td><td>0.0%</td><td>1.7%</td><td>-1.7%</td><td>$-285</td></tr>
+<tr><td>DUPLICATE</td><td>3</td><td>4</td><td>1</td><td>0.0%</td><td>0.1%</td><td>-0.1%</td><td>$-15</td></tr>
+</tbody></table>
+<h2>Workqueue routing</h2>
+<ul>
+<li>Workqueue size: **25** claims</li>
+<li>Owners are bucket-mapped and include required evidence fields for first-touch.</li>
+</ul>
+<h2>Falsification</h2>
+<ul>
+<li>If next dataset week materially changes top-bucket ranks/shares, re-prioritize before scaling actions.</li>
+</ul>
+<h2>Data gaps and proxy caveats</h2>
+<ul>
+<li><code>payer_dim_status=&amp;#x27;MISSING_IN_MART&amp;#x27;</code> because payer identity is unavailable in current marts.</li>
+<li><code>service_date</code> is proxy-derived from <code>aging_days</code>.</li>
+<li><code>denied_amount</code> uses <code>denied_potential_allowed_proxy_amt</code> (proxy).</li>
+</ul>
+<h2>Field mapping (proxy-aware)</h2>
+<table>
+<thead><tr><th>Output field</th><th>Source field</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>claim_id</td><td><code>clm_id</code></td><td>claim-grain identifier</td></tr>
+<tr><td>denied_amount</td><td><code>denied_potential_allowed_proxy_amt</code></td><td>proxy for denied amount</td></tr>
+<tr><td>denial_reason</td><td><code>top_denial_group</code> / <code>top_denial_prcsg</code></td><td>best available reason text</td></tr>
+<tr><td>service_date</td><td>derived from <code>aging_days</code></td><td>proxy date for dataset-week anchoring</td></tr>
+<tr><td>payer_dim_status</td><td>constant <code>MISSING_IN_MART</code></td><td>payer identity is unavailable</td></tr>
+</tbody></table>
+<h2>Generated outputs</h2>
+<ul>
+<li>Summary CSV: <code>exports/denials_recovery_summary_v1.csv</code></li>
+<li>Workqueue CSV: <code>exports/denials_recovery_workqueue_v1.csv</code></li>
+<li>Aging bands CSV: <code>exports/denials_recovery_aging_bands_v1.csv</code></li>
+<li>Stability CSV: <code>exports/denials_recovery_stability_v1.csv</code></li>
+</ul>
+</body>
+</html>
