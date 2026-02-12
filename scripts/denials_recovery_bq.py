@@ -311,11 +311,19 @@ def _stacked_bar_html(shares: list[tuple[str, float]]) -> str:
     )
 
 
-def _impact_confidence_label(top2_overlap: int, sample_n: int) -> str:
-    if top2_overlap >= 2 and sample_n >= 30:
+def _impact_stability_confidence_label(top2_overlap: int) -> str:
+    if top2_overlap >= 2:
         return "HIGH"
-    if top2_overlap >= 2 and sample_n < 30:
+    if top2_overlap == 1:
         return "MEDIUM"
+    return "LOW"
+
+
+def _impact_evidence_confidence_label(sample_n: int, has_outcomes: bool) -> str:
+    if not has_outcomes:
+        return "NO_OUTCOMES_PROVIDED"
+    if sample_n >= 30:
+        return "OK"
     return "LOW"
 
 
@@ -325,7 +333,8 @@ def _impact_card_html(impact: dict[str, object]) -> str:
     total_denied = float(impact["current_total_denied_amount_sum"])
     top2_priority_share = float(impact["top2_priority_share_pct"])
     top2_overlap = int(impact["top2_overlap"])
-    confidence = str(impact["confidence_signal"])
+    stability_conf = str(impact["stability_confidence"])
+    evidence_conf = str(impact["evidence_confidence"])
     workqueue_size = int(impact["workqueue_size_used"])
     top2_names = str(impact["top2_bucket_names"])
     expected_recovery_amt = float(impact["expected_recovery_amt"])
@@ -342,10 +351,11 @@ def _impact_card_html(impact: dict[str, object]) -> str:
         "<section class=\"impact-card\">"
         + "<h2>Impact in 90 Seconds</h2>"
         + f"<p>Current week <strong>{escape(current_week_key)}</strong> vs prior week <strong>{escape(prior_week_key)}</strong>:</p>"
-        + f"<ul><li>Total directional denied exposure (proxy): <strong>{_fmt_money(total_denied)}</strong>.</li>"
+        + f"<ul><li>Total directional denied exposure (<strong>PROXY</strong>): <strong>{_fmt_money(total_denied)}</strong>.</li>"
         + f"<li>Top 2 buckets ({escape(top2_names)}) account for <strong>{top2_priority_share:.1f}%</strong> of weighted exposure.</li>"
         + f"<li>Working the top <strong>{workqueue_size}</strong> items concentrates effort on highest expected recovery value first.</li>"
-        + f"<li>Stability signal: <strong>{top2_overlap}/2 overlap</strong> week-over-week (<strong>{escape(confidence)}</strong> confidence).</li>"
+        + f"<li>Stability signal: <strong>{top2_overlap}/2 overlap</strong> week-over-week (<strong>{escape(stability_conf)}</strong>).</li>"
+        + f"<li>Evidence confidence: <strong>{escape(evidence_conf)}</strong>.</li>"
         + outcomes_line
         + "</ul>"
         + "<p><strong>Safe for:</strong></p><ul><li>Directional triage</li><li>Owner routing</li></ul>"
@@ -586,7 +596,7 @@ def _build_teaching_html(
   <h3>30-second answer</h3>
   <p>We rank denials using a deterministic weighted score from dbt marts, then route the top queue by owner and evidence. Current focus is {escape(str(impact["top2_bucket_names"]))}, covering {float(impact["top2_priority_share_pct"]):.1f}% of weighted exposure.</p>
   <h3>60-second answer</h3>
-  <p>For week {escape(str(impact["current_week_key"]))}, directional denied exposure is {_fmt_money(float(impact["current_total_denied_amount_sum"]))}. Top 2 buckets represent {float(impact["top2_priority_share_pct"]):.1f}% of weighted exposure, with stability {int(impact["top2_overlap"])}/2 ({escape(str(impact["confidence_signal"]))}).</p>
+  <p>For week {escape(str(impact["current_week_key"]))}, directional denied exposure is {_fmt_money(float(impact["current_total_denied_amount_sum"]))}. Top 2 buckets represent {float(impact["top2_priority_share_pct"]):.1f}% of weighted exposure, with stability {int(impact["top2_overlap"])}/2 ({escape(str(impact["stability_confidence"]))}) and evidence confidence {escape(str(impact["evidence_confidence"]))}.</p>
   <h3>90-second answer</h3>
   <p>We use this for directional triage, not causal or payer-level commitments. Workqueue size is {int(impact["workqueue_size_used"])}, expected recovery is {_fmt_money(float(impact["expected_recovery_amt"]))} (directional), and actions stay reversible until richer marts add payer identity and CARC/RARC.</p>
   <h2>Hostile questions</h2>
@@ -1273,7 +1283,8 @@ def main() -> int:
         "workqueue_size_used": int(len(workqueue_out)),
         "top2_bucket_names": top2_bucket_names,
         "top2_overlap": int(top2_overlap),
-        "confidence_signal": "LOW",
+        "stability_confidence": "LOW",
+        "evidence_confidence": "NO_OUTCOMES_PROVIDED",
         "expected_recovery_amt": 0.0,
         "outcomes_sample_n": 0,
         "sample_quality": "NO_OUTCOMES_PROVIDED",
@@ -1315,15 +1326,15 @@ def main() -> int:
     expected_resolutions = expected_touches * resolved_rate if has_outcomes else 0.0
     expected_recovered_amt = expected_resolutions * avg_realized_per_resolved if has_outcomes else 0.0
     outcomes_sample_n = int(outcomes_metrics["matched_claims"]) if outcomes_metrics is not None else 0
-    if outcomes_metrics is None:
-        sample_quality = "NO_OUTCOMES_PROVIDED"
-    else:
-        sample_quality = "OK" if outcomes_sample_n >= 30 else "LOW"
-    confidence_signal = _impact_confidence_label(top2_overlap, outcomes_sample_n)
+    sample_quality = _impact_evidence_confidence_label(
+        outcomes_sample_n, outcomes_metrics is not None
+    )
+    stability_confidence = _impact_stability_confidence_label(top2_overlap)
     impact["expected_recovery_amt"] = expected_recovered_amt if has_outcomes else 0.0
     impact["outcomes_sample_n"] = outcomes_sample_n
     impact["sample_quality"] = sample_quality
-    impact["confidence_signal"] = confidence_signal
+    impact["stability_confidence"] = stability_confidence
+    impact["evidence_confidence"] = sample_quality
     capacity_summary: dict[str, float | str | bool] = {
         "weekly_touch_budget_minutes": weekly_touch_budget_minutes,
         "effective_touch_minutes": effective_touch_minutes,
@@ -1422,7 +1433,8 @@ def main() -> int:
     print(f"IMPACT_TOP2_BUCKETS={top2_bucket_names}")
     print(f"IMPACT_TOP2_PRIORITY_SHARE={top2_priority_share_pct:.4f}%")
     print(f"IMPACT_TOP2_OVERLAP={top2_overlap}/2")
-    print(f"IMPACT_CONFIDENCE={impact['confidence_signal']}")
+    print(f"IMPACT_STABILITY_CONFIDENCE={impact['stability_confidence']}")
+    print(f"IMPACT_EVIDENCE_CONFIDENCE={impact['evidence_confidence']}")
     print(f"IMPACT_WORKQUEUE_SIZE={int(len(workqueue_out))}")
     if outcomes_metrics is not None:
         print(f"IMPACT_EXPECTED_RECOVERY_AMT={expected_recovered_amt:.2f}")
