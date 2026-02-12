@@ -58,14 +58,14 @@
 - Workqueue CSV: `exports/denials_recovery_workqueue_v1.csv`
 - Aging bands CSV: `exports/denials_recovery_aging_bands_v1.csv`
 - Stability CSV: `exports/denials_recovery_stability_v1.csv`
+- Opportunity sizing CSV: `exports/denials_recovery_opportunity_sizing_v1.csv`
+
+## Opportunity & Capacity (Directional)
+- Weekly touch budget: **10.0 hours**
+- Effective touch minutes: **12.0**
+- Expected touches/week: **50.0**
+- No outcomes file provided: capacity outputs are directional placeholders.
 
 ## Outcome Tracking (Learning Loop)
-- Outcomes are directional unless sourced from adjudication/ERA-grade systems.
-- Outcomes rows: **5**
-- Matched claims: **5**
-- Recovery realized sum: **$315**
-- Recovery realized rate: **30.6%**
-- Resolved rate: **80.0%**
-- False positive rate: **40.0%**
-- Top-bucket recovery rate: **40.0%**
-- Guardrail: do not overclaim ROI from proxy-based outcomes.
+- No outcomes file provided yet (`--outcomes-csv` not supplied).
+- Outcomes remain directional until sourced from adjudication/ERA-quality systems.

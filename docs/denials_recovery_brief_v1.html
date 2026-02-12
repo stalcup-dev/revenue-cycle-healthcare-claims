@@ -47,11 +47,44 @@
       font-size: 13px;
       margin-bottom: 16px;
     }
+    .opp-panel {
+      margin: 8px 0 12px 0;
+    }
+    .opp-row {
+      margin-bottom: 10px;
+    }
+    .opp-label {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .opp-bar-wrap {
+      width: 100%;
+      height: 14px;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #f6f8fa;
+    }
+    .opp-bar {
+      height: 100%;
+    }
+    .impact-card {
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 10px 0 16px 0;
+      background: #f8fbff;
+    }
+    .impact-card ul {
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body>
   <h1>Denials Recovery Opportunity Brief v1</h1>
+  <section class="impact-card"><h2>Impact in 90 Seconds</h2><p>In dataset week <strong>2011-02-14</strong>:</p><ul><li>Total directional denied exposure (proxy): <strong>$5,350</strong>.</li><li>Top 2 buckets (AUTH_ELIG, OTHER_PROXY) account for <strong>89.5%</strong> of weighted exposure.</li><li>Working the top <strong>25</strong> items concentrates effort on highest expected recovery value first.</li><li>Stability signal: <strong>2/2 overlap</strong> week-over-week (<strong>HIGH</strong> confidence).</li></ul><p><strong>Safe for:</strong> directional triage and owner routing.<br><strong>Not safe for:</strong> payer-level operational change.</p></section>
   <h2>Exposure concentration</h2><div class="stacked-bar"><span style="width:65.18%;background:#1f77b4;display:block;height:100%;"></span><span style="width:34.82%;background:#ff7f0e;display:block;height:100%;"></span><span style="width:0.00%;background:#2ca02c;display:block;height:100%;"></span><span style="width:0.00%;background:#9467bd;display:block;height:100%;"></span></div><div class="stacked-bar-legend"><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#1f77b4;margin-right:4px;"></span>AUTH_ELIG (65.2%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#ff7f0e;margin-right:4px;"></span>OTHER_PROXY (34.8%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#2ca02c;margin-right:4px;"></span>CODING_DOC (0.0%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#9467bd;margin-right:4px;"></span>DUPLICATE (0.0%)</span></div>
+  <h2>Opportunity & Capacity</h2><p>Directional view from current workqueue exposure and available outcomes.</p><div class="opp-panel"><div class="opp-row"><div class="opp-label">AUTH_ELIG (86.3%)</div><div class="opp-bar-wrap"><div class="opp-bar" style="width:86.33%;background:#1f77b4;"></div></div></div><div class="opp-row"><div class="opp-label">OTHER_PROXY (13.7%)</div><div class="opp-bar-wrap"><div class="opp-bar" style="width:13.67%;background:#ff7f0e;"></div></div></div></div><p><strong>At 10.0 hrs/week, capacity supports about 50.0 touches/week. No outcomes file provided; recovery dollars are directional placeholders.</strong></p>
   <h1>Denials Recovery Opportunity Brief v1</h1>
 <ul>
 <li>**Source relation:** <code>rcm-flagship.rcm.mart_workqueue_claims</code> (dbt mart only)</li>
@@ -124,18 +157,19 @@
 <li>Workqueue CSV: <code>exports/denials_recovery_workqueue_v1.csv</code></li>
 <li>Aging bands CSV: <code>exports/denials_recovery_aging_bands_v1.csv</code></li>
 <li>Stability CSV: <code>exports/denials_recovery_stability_v1.csv</code></li>
+<li>Opportunity sizing CSV: <code>exports/denials_recovery_opportunity_sizing_v1.csv</code></li>
+</ul>
+<h2>Opportunity &amp; Capacity (Directional)</h2>
+<ul>
+<li>Weekly touch budget: **10.0 hours**</li>
+<li>Effective touch minutes: **12.0**</li>
+<li>Expected touches/week: **50.0**</li>
+<li>No outcomes file provided: capacity outputs are directional placeholders.</li>
 </ul>
 <h2>Outcome Tracking (Learning Loop)</h2>
 <ul>
-<li>Outcomes are directional unless sourced from adjudication/ERA-grade systems.</li>
-<li>Outcomes rows: **5**</li>
-<li>Matched claims: **5**</li>
-<li>Recovery realized sum: **$315**</li>
-<li>Recovery realized rate: **30.6%**</li>
-<li>Resolved rate: **80.0%**</li>
-<li>False positive rate: **40.0%**</li>
-<li>Top-bucket recovery rate: **40.0%**</li>
-<li>Guardrail: do not overclaim ROI from proxy-based outcomes.</li>
+<li>No outcomes file provided yet (<code>--outcomes-csv</code> not supplied).</li>
+<li>Outcomes remain directional until sourced from adjudication/ERA-quality systems.</li>
 </ul>
 </body>
 </html>

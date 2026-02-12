@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 from datetime import date
 from html import escape
@@ -310,9 +311,107 @@ def _stacked_bar_html(shares: list[tuple[str, float]]) -> str:
     )
 
 
-def _to_html_document(title: str, markdown_text: str, shares: list[tuple[str, float]]) -> str:
+def _impact_confidence_label(top2_overlap: int) -> str:
+    if top2_overlap >= 2:
+        return "HIGH"
+    if top2_overlap == 1:
+        return "MEDIUM"
+    return "LOW"
+
+
+def _impact_card_html(impact: dict[str, object]) -> str:
+    current_week_key = str(impact["current_week_key"])
+    total_denied = float(impact["current_total_denied_amount_sum"])
+    top2_priority_share = float(impact["top2_priority_share_pct"])
+    top2_overlap = int(impact["top2_overlap"])
+    confidence = str(impact["confidence_signal"])
+    workqueue_size = int(impact["workqueue_size_used"])
+    top2_names = str(impact["top2_bucket_names"])
+
+    return (
+        "<section class=\"impact-card\">"
+        + "<h2>Impact in 90 Seconds</h2>"
+        + f"<p>In dataset week <strong>{escape(current_week_key)}</strong>:</p>"
+        + f"<ul><li>Total directional denied exposure (proxy): <strong>{_fmt_money(total_denied)}</strong>.</li>"
+        + f"<li>Top 2 buckets ({escape(top2_names)}) account for <strong>{top2_priority_share:.1f}%</strong> of weighted exposure.</li>"
+        + f"<li>Working the top <strong>{workqueue_size}</strong> items concentrates effort on highest expected recovery value first.</li>"
+        + f"<li>Stability signal: <strong>{top2_overlap}/2 overlap</strong> week-over-week (<strong>{escape(confidence)}</strong> confidence).</li></ul>"
+        + "<p><strong>Safe for:</strong> directional triage and owner routing.<br>"
+        + "<strong>Not safe for:</strong> payer-level operational change.</p>"
+        + "</section>"
+    )
+
+
+def _opportunity_capacity_html(
+    opportunity_df: pd.DataFrame,
+    capacity_summary: dict[str, float | str | bool],
+) -> str:
+    if opportunity_df.empty:
+        return "<h2>Opportunity & Capacity</h2><p>No opportunity rows available.</p>"
+
+    top_df = opportunity_df.sort_values(
+        ["workqueue_denied_sum", "denial_bucket"], ascending=[False, True]
+    ).head(5)
+    total = float(top_df["workqueue_denied_sum"].sum())
+    if total <= 0:
+        total = 1.0
+
+    bar_rows: list[str] = []
+    palette = ["#1f77b4", "#ff7f0e", "#2ca02c", "#9467bd", "#8c564b"]
+    for idx, row in top_df.reset_index(drop=True).iterrows():
+        amt = float(row["workqueue_denied_sum"])
+        width = max(2.0, (amt / total) * 100.0)
+        label = str(row["denial_bucket"])
+        share = amt / total
+        recovered_rate = row.get("recovered_rate", pd.NA)
+        if pd.notna(recovered_rate):
+            rr_txt = f" | recovered rate {_fmt_pct(float(recovered_rate))}"
+        else:
+            rr_txt = ""
+        bar_rows.append(
+            "<div class=\"opp-row\">"
+            + f"<div class=\"opp-label\">{escape(label)} ({_fmt_pct(share)}){escape(rr_txt)}</div>"
+            + f"<div class=\"opp-bar-wrap\"><div class=\"opp-bar\" style=\"width:{width:.2f}%;background:{palette[idx % len(palette)]};\"></div></div>"
+            + "</div>"
+        )
+
+    hours = float(capacity_summary["weekly_touch_budget_minutes"]) / 60.0
+    touches = float(capacity_summary["expected_touches"])
+    has_outcomes = bool(capacity_summary["has_outcomes"])
+    if has_outcomes:
+        recovered = float(capacity_summary["expected_recovered_amt"])
+        summary_line = (
+            f"At {hours:.1f} hrs/week, expected recovered dollars is about {_fmt_money(recovered)} "
+            "(directional)."
+        )
+    else:
+        summary_line = (
+            f"At {hours:.1f} hrs/week, capacity supports about {touches:.1f} touches/week. "
+            "No outcomes file provided; recovery dollars are directional placeholders."
+        )
+
+    return (
+        "<h2>Opportunity & Capacity</h2>"
+        + "<p>Directional view from current workqueue exposure and available outcomes.</p>"
+        + "<div class=\"opp-panel\">"
+        + "".join(bar_rows)
+        + "</div>"
+        + f"<p><strong>{escape(summary_line)}</strong></p>"
+    )
+
+
+def _to_html_document(
+    title: str,
+    markdown_text: str,
+    shares: list[tuple[str, float]],
+    opportunity_df: pd.DataFrame,
+    capacity_summary: dict[str, float | str | bool],
+    impact: dict[str, object],
+) -> str:
     body_html = _markdown_to_html(markdown_text)
     stacked_html = _stacked_bar_html(shares)
+    opportunity_html = _opportunity_capacity_html(opportunity_df, capacity_summary)
+    impact_html = _impact_card_html(impact)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -362,11 +461,44 @@ def _to_html_document(title: str, markdown_text: str, shares: list[tuple[str, fl
       font-size: 13px;
       margin-bottom: 16px;
     }}
+    .opp-panel {{
+      margin: 8px 0 12px 0;
+    }}
+    .opp-row {{
+      margin-bottom: 10px;
+    }}
+    .opp-label {{
+      font-size: 13px;
+      margin-bottom: 2px;
+    }}
+    .opp-bar-wrap {{
+      width: 100%;
+      height: 14px;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #f6f8fa;
+    }}
+    .opp-bar {{
+      height: 100%;
+    }}
+    .impact-card {{
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 10px 0 16px 0;
+      background: #f8fbff;
+    }}
+    .impact-card ul {{
+      margin-top: 6px;
+    }}
   </style>
 </head>
 <body>
   <h1>{escape(title)}</h1>
+  {impact_html}
   {stacked_html}
+  {opportunity_html}
   {body_html}
 </body>
 </html>
@@ -380,6 +512,7 @@ def _build_teaching_html(
     prior_week_key: str,
     summary_df: pd.DataFrame,
     outcomes_metrics: dict[str, float] | None,
+    impact: dict[str, object],
 ) -> str:
     top_row = summary_df.iloc[0] if not summary_df.empty else None
     worked_example = (
@@ -437,6 +570,13 @@ def _build_teaching_html(
     <li>Action: route queue with owner/evidence requirements.</li>
     <li>Falsification: if rank/share stability changes, re-prioritize.</li>
   </ul>
+  <h2>How to Explain This in an Interview</h2>
+  <h3>30-second answer</h3>
+  <p>We rank denials using a deterministic weighted score from dbt marts, then route the top queue by owner and evidence. Current focus is {escape(str(impact["top2_bucket_names"]))}.</p>
+  <h3>60-second answer</h3>
+  <p>For week {escape(str(impact["current_week_key"]))}, directional denied exposure is {_fmt_money(float(impact["current_total_denied_amount_sum"]))}. Top 2 buckets represent {float(impact["top2_priority_share_pct"]):.1f}% of weighted exposure, with stability {int(impact["top2_overlap"])}/2 ({escape(str(impact["confidence_signal"]))}).</p>
+  <h3>90-second answer</h3>
+  <p>We use this for directional triage, not causal or payer-level commitments. Workqueue size is {int(impact["workqueue_size_used"])} and actions stay reversible until richer marts add payer identity and CARC/RARC.</p>
   <h2>Hostile questions</h2>
   <ol>
     <li>Why no payer insights? Because payer identity is absent in this mart layer.</li>
@@ -445,6 +585,25 @@ def _build_teaching_html(
     <li>Why this week anchor? Uses dataset max week for deterministic comparisons.</li>
     <li>How do you reduce proxy risk? Add payer_id, CARC/RARC, true service dates in marts.</li>
   </ol>
+  <h2>Selection bias and false positives</h2>
+  <h3>Why false positives happen</h3>
+  <ul>
+    <li>Proxy denied amounts can rank claims that later resolve as non-recoverable.</li>
+    <li>Short windows can over-represent one denial process phase.</li>
+    <li>Manual outcomes entry can lag true adjudication timing.</li>
+  </ul>
+  <h3>How to reduce them</h3>
+  <ul>
+    <li>Collect outcomes weekly and recalibrate bucket weights every cycle.</li>
+    <li>Add payer_id and CARC/RARC to reduce OTHER_PROXY routing noise.</li>
+    <li>Track resolved-within-window by bucket and de-prioritize low-yield buckets.</li>
+  </ul>
+  <h2>How to size action</h2>
+  <ul>
+    <li>Start with weekly touch budget and default touch minutes.</li>
+    <li>Estimate touches, then convert to directional resolutions using observed resolved rate.</li>
+    <li>Translate to directional recovered dollars and treat as planning bounds, not guarantees.</li>
+  </ul>
   <h2>Worked example</h2>
   <p>{escape(worked_example)}</p>
   <h2>Anchor context</h2>
@@ -490,6 +649,8 @@ def _build_brief_markdown(
     stability_df: pd.DataFrame,
     top2_overlap: int,
     outcomes_metrics: dict[str, float] | None,
+    capacity_summary: dict[str, float | str | bool],
+    impact: dict[str, object],
 ) -> str:
     total_priority = float(summary_df["priority_score"].sum()) if not summary_df.empty else 0.0
     top2 = summary_df.head(2).copy()
@@ -586,8 +747,32 @@ def _build_brief_markdown(
             "- Workqueue CSV: `exports/denials_recovery_workqueue_v1.csv`",
             "- Aging bands CSV: `exports/denials_recovery_aging_bands_v1.csv`",
             "- Stability CSV: `exports/denials_recovery_stability_v1.csv`",
+            "- Opportunity sizing CSV: `exports/denials_recovery_opportunity_sizing_v1.csv`",
         ]
     )
+
+    lines.extend(
+        [
+            "",
+            "## Opportunity & Capacity (Directional)",
+            f"- Weekly touch budget: **{float(capacity_summary['weekly_touch_budget_minutes'])/60.0:.1f} hours**",
+            f"- Effective touch minutes: **{float(capacity_summary['effective_touch_minutes']):.1f}**",
+            f"- Expected touches/week: **{float(capacity_summary['expected_touches']):.1f}**",
+        ]
+    )
+    if bool(capacity_summary["has_outcomes"]):
+        lines.extend(
+            [
+                f"- Expected resolutions/week: **{float(capacity_summary['expected_resolutions']):.1f}**",
+                f"- Expected recovered amount/week: **{_fmt_money(float(capacity_summary['expected_recovered_amt']))}** (directional)",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "- No outcomes file provided: capacity outputs are directional placeholders.",
+            ]
+        )
 
     lines.extend(["", "## Outcome Tracking (Learning Loop)"])
     if outcomes_metrics is None:
@@ -800,6 +985,96 @@ def _build_outcomes_export(
     return export_df, metrics
 
 
+def _build_opportunity_sizing(
+    workqueue_out: pd.DataFrame,
+    outcomes_export: pd.DataFrame | None,
+) -> pd.DataFrame:
+    base = (
+        workqueue_out.groupby("denial_bucket", as_index=False)
+        .agg(
+            workqueue_denied_sum=("denied_amount", "sum"),
+            workqueue_count=("claim_id", "size"),
+            avg_denied=("denied_amount", "mean"),
+        )
+        .sort_values(["workqueue_denied_sum", "denial_bucket"], ascending=[False, True])
+        .reset_index(drop=True)
+    )
+
+    if outcomes_export is None or outcomes_export.empty:
+        base["resolved_rate"] = pd.NA
+        base["recovered_rate"] = pd.NA
+        base["avg_realized_recovery_amt"] = pd.NA
+        base["expected_recovered_per_10_touches"] = pd.NA
+        return base[
+            [
+                "denial_bucket",
+                "workqueue_denied_sum",
+                "workqueue_count",
+                "avg_denied",
+                "resolved_rate",
+                "recovered_rate",
+                "avg_realized_recovery_amt",
+                "expected_recovered_per_10_touches",
+            ]
+        ]
+
+    matched = outcomes_export[outcomes_export["resolution_status"].astype(str).str.len() > 0].copy()
+    matched["is_resolved_bool"] = matched["is_resolved"].eq("Y")
+    matched["is_recovered_bool"] = matched["is_recovered"].eq("Y")
+    matched["realized_recovery_amt"] = pd.to_numeric(
+        matched["realized_recovery_amt"], errors="coerce"
+    ).fillna(0.0)
+
+    by_bucket = (
+        matched.groupby("denial_bucket", as_index=False)
+        .agg(
+            resolved_rate=("is_resolved_bool", "mean"),
+            recovered_rate=("is_recovered_bool", "mean"),
+            avg_realized_recovery_amt=("realized_recovery_amt", "mean"),
+        )
+        .sort_values(["denial_bucket"], ascending=[True])
+        .reset_index(drop=True)
+    )
+    by_bucket["expected_recovered_per_10_touches"] = (
+        by_bucket["recovered_rate"] * by_bucket["avg_realized_recovery_amt"] * 10.0
+    )
+
+    merged = base.merge(by_bucket, on="denial_bucket", how="left")
+    return merged[
+        [
+            "denial_bucket",
+            "workqueue_denied_sum",
+            "workqueue_count",
+            "avg_denied",
+            "resolved_rate",
+            "recovered_rate",
+            "avg_realized_recovery_amt",
+            "expected_recovered_per_10_touches",
+        ]
+    ].sort_values(["workqueue_denied_sum", "denial_bucket"], ascending=[False, True]).reset_index(drop=True)
+
+
+def _parse_touch_minutes_by_bucket(raw: str) -> dict[str, float]:
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Invalid JSON in --touch-minutes-by-bucket: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise RuntimeError("--touch-minutes-by-bucket must be a JSON object")
+    clean: dict[str, float] = {}
+    for key, value in parsed.items():
+        try:
+            v = float(value)
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(f"Invalid touch minute value for bucket '{key}'") from exc
+        if v <= 0:
+            raise RuntimeError(f"Touch minutes must be positive for bucket '{key}'")
+        clean[str(key)] = v
+    return clean
+
+
 def _write_csv(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path, index=False)
@@ -818,6 +1093,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--outcomes-csv", type=str, default="", help="Optional outcomes CSV path for realized feedback metrics.")
     parser.add_argument("--outcomes-claim-id-col", type=str, default="claim_id", help="Claim id column name in outcomes CSV.")
     parser.add_argument("--outcomes-window-days", type=int, default=90, help="Window for recovered/resolved-within metrics.")
+    parser.add_argument("--touch-minutes-default", type=float, default=12.0, help="Default touch minutes per claim.")
+    parser.add_argument(
+        "--touch-minutes-by-bucket",
+        type=str,
+        default="",
+        help='Optional JSON map like {"AUTH_ELIG":10,"CODING_DOC":14}',
+    )
+    parser.add_argument("--weekly-touch-budget-minutes", type=float, default=600.0, help="Weekly touch budget in minutes.")
     parser.add_argument("--dry-run-sql", action="store_true", help="Print SQL statements only; do not execute.")
     parser.add_argument("--write-html", dest="write_html", action="store_true")
     parser.add_argument("--no-write-html", dest="write_html", action="store_false")
@@ -946,6 +1229,7 @@ def main() -> int:
     aging_path = out_dir / "denials_recovery_aging_bands_v1.csv"
     stability_path = out_dir / "denials_recovery_stability_v1.csv"
     outcomes_path = out_dir / "denials_recovery_outcomes_v1.csv"
+    opportunity_sizing_path = out_dir / "denials_recovery_opportunity_sizing_v1.csv"
     teaching_html_path = out_dir / "denials_recovery_brief_v1_teaching.html"
 
     aging_df = _build_aging_bands(current_df)
@@ -959,7 +1243,27 @@ def main() -> int:
     current_key_str = _dataset_week_from_value(current_dataset_week_key)
     prior_key_str = _dataset_week_from_value(prior_dataset_week_key) if prior_dataset_week_key else "NONE"
     top2_buckets = set(summary_out.head(2)["denial_bucket"].tolist())
+    top2_rows = summary_out.head(2).copy()
+    current_total_denied_amount_sum = float(summary_out["denied_amount_sum"].sum()) if not summary_out.empty else 0.0
+    current_total_priority_score_sum = float(summary_out["priority_score"].sum()) if not summary_out.empty else 0.0
+    top2_priority_sum = float(top2_rows["priority_score"].sum()) if not top2_rows.empty else 0.0
+    top2_denied_sum = float(top2_rows["denied_amount_sum"].sum()) if not top2_rows.empty else 0.0
+    top2_priority_share_pct = (top2_priority_sum / current_total_priority_score_sum * 100.0) if current_total_priority_score_sum > 0 else 0.0
+    top2_denied_amount_share_pct = (top2_denied_sum / current_total_denied_amount_sum * 100.0) if current_total_denied_amount_sum > 0 else 0.0
+    top2_bucket_names = ", ".join(top2_rows["denial_bucket"].astype(str).tolist()) if not top2_rows.empty else "NONE"
+    impact: dict[str, object] = {
+        "current_week_key": current_key_str,
+        "current_total_denied_amount_sum": current_total_denied_amount_sum,
+        "current_total_priority_score_sum": current_total_priority_score_sum,
+        "top2_priority_share_pct": top2_priority_share_pct,
+        "top2_denied_amount_share_pct": top2_denied_amount_share_pct,
+        "workqueue_size_used": int(len(workqueue_out)),
+        "top2_bucket_names": top2_bucket_names,
+        "top2_overlap": int(top2_overlap),
+        "confidence_signal": _impact_confidence_label(top2_overlap),
+    }
     outcomes_metrics: dict[str, float] | None = None
+    outcomes_export: pd.DataFrame | None = None
     if args.outcomes_csv:
         outcomes_csv_path = Path(args.outcomes_csv)
         if outcomes_csv_path.exists():
@@ -976,6 +1280,36 @@ def main() -> int:
         else:
             print(f"OUTCOMES_WARNING=File not found: {outcomes_csv_path}")
 
+    touch_map = _parse_touch_minutes_by_bucket(args.touch_minutes_by_bucket)
+    touch_series = workqueue_out["denial_bucket"].map(lambda b: touch_map.get(str(b), float(args.touch_minutes_default)))
+    effective_touch_minutes = float(touch_series.mean()) if len(touch_series) > 0 else float(args.touch_minutes_default)
+    weekly_touch_budget_minutes = float(args.weekly_touch_budget_minutes)
+    expected_touches = weekly_touch_budget_minutes / effective_touch_minutes if effective_touch_minutes > 0 else 0.0
+    has_outcomes = outcomes_metrics is not None and outcomes_export is not None
+    resolved_rate = float(outcomes_metrics["resolved_rate"]) if outcomes_metrics is not None else 0.0
+    if outcomes_export is not None:
+        recovered_rows = outcomes_export[outcomes_export["is_recovered"].eq("Y")]
+        avg_realized_per_resolved = (
+            float(pd.to_numeric(recovered_rows["realized_recovery_amt"], errors="coerce").fillna(0.0).mean())
+            if len(recovered_rows) > 0
+            else 0.0
+        )
+    else:
+        avg_realized_per_resolved = 0.0
+    expected_resolutions = expected_touches * resolved_rate if has_outcomes else 0.0
+    expected_recovered_amt = expected_resolutions * avg_realized_per_resolved if has_outcomes else 0.0
+    capacity_summary: dict[str, float | str | bool] = {
+        "weekly_touch_budget_minutes": weekly_touch_budget_minutes,
+        "effective_touch_minutes": effective_touch_minutes,
+        "expected_touches": expected_touches,
+        "expected_resolutions": expected_resolutions,
+        "expected_recovered_amt": expected_recovered_amt,
+        "has_outcomes": has_outcomes,
+    }
+
+    opportunity_sizing_df = _build_opportunity_sizing(workqueue_out, outcomes_export)
+    _write_csv(opportunity_sizing_df, opportunity_sizing_path)
+
     markdown = _build_brief_markdown(
         source_fqn=source_fqn,
         anchor_mode=anchor_mode,
@@ -987,6 +1321,8 @@ def main() -> int:
         stability_df=stability_df,
         top2_overlap=top2_overlap,
         outcomes_metrics=outcomes_metrics,
+        capacity_summary=capacity_summary,
+        impact=impact,
     )
 
     shares_df = (
@@ -1012,16 +1348,34 @@ def main() -> int:
             prior_week_key=prior_key_str,
             summary_df=summary_out,
             outcomes_metrics=outcomes_metrics,
+            impact=impact,
         ),
         encoding="utf-8",
     )
 
     if args.write_html:
-        html_text = _to_html_document("Denials Recovery Opportunity Brief v1", markdown, shares)
+        html_text = _to_html_document(
+            "Denials Recovery Opportunity Brief v1",
+            markdown,
+            shares,
+            opportunity_sizing_df,
+            capacity_summary,
+            impact,
+        )
         brief_html_path.write_text(html_text, encoding="utf-8")
         if args.determinism_check:
             first_hash = _sha256(brief_html_path)
-            brief_html_path.write_text(_to_html_document("Denials Recovery Opportunity Brief v1", markdown, shares), encoding="utf-8")
+            brief_html_path.write_text(
+                _to_html_document(
+                    "Denials Recovery Opportunity Brief v1",
+                    markdown,
+                    shares,
+                    opportunity_sizing_df,
+                    capacity_summary,
+                    impact,
+                ),
+                encoding="utf-8",
+            )
             second_hash = _sha256(brief_html_path)
             match = first_hash == second_hash
             print(f"DETERMINISM_HTML_SHA_FIRST={first_hash}")
@@ -1035,6 +1389,20 @@ def main() -> int:
     print(f"CURRENT_DATASET_WEEK_KEY={current_key_str}")
     print(f"PRIOR_DATASET_WEEK_KEY={prior_key_str}")
     print(f"TOP2_OVERLAP={top2_overlap}/2")
+    print(f"IMPACT_TOTAL_DENIED={current_total_denied_amount_sum:.2f}")
+    print(f"IMPACT_TOTAL_PRIORITY={current_total_priority_score_sum:.2f}")
+    print(f"IMPACT_TOP2_PRIORITY_SHARE={top2_priority_share_pct:.4f}%")
+    print(f"IMPACT_TOP2_DENIED_SHARE={top2_denied_amount_share_pct:.4f}%")
+    print(f"IMPACT_CONFIDENCE={impact['confidence_signal']}")
+    print(f"CAPACITY_WEEKLY_TOUCH_BUDGET_MINUTES={weekly_touch_budget_minutes:.2f}")
+    print(f"CAPACITY_TOUCH_MINUTES_DEFAULT={float(args.touch_minutes_default):.2f}")
+    print(f"CAPACITY_EFFECTIVE_AVG_TOUCH_MINUTES={effective_touch_minutes:.2f}")
+    print(f"CAPACITY_EXPECTED_TOUCHES={expected_touches:.2f}")
+    if has_outcomes:
+        print(f"CAPACITY_EXPECTED_RESOLUTIONS={expected_resolutions:.2f}")
+        print(f"CAPACITY_EXPECTED_RECOVERED_AMT={expected_recovered_amt:.2f}")
+    else:
+        print("CAPACITY_OUTCOMES_STATUS=NO_OUTCOMES_PROVIDED")
     if outcomes_metrics is not None:
         print(f"OUTCOMES_ROWS={int(outcomes_metrics['outcomes_rows'])}")
         print(f"MATCHED_CLAIMS={int(outcomes_metrics['matched_claims'])}")
@@ -1047,6 +1415,7 @@ def main() -> int:
     print(f"WROTE={workqueue_path}")
     print(f"WROTE={aging_path}")
     print(f"WROTE={stability_path}")
+    print(f"WROTE={opportunity_sizing_path}")
     if outcomes_metrics is not None:
         print(f"WROTE={outcomes_path}")
     print(f"WROTE={brief_md_path}")
