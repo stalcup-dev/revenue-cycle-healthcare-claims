@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Denials Prevention Opportunity Brief v1</title>
+<style>body{max-width:960px;margin:24px auto;padding:0 16px 40px 16px;font-family:'Segoe UI',Arial,sans-serif;line-height:1.5;color:#111}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f5f6f7}.impact-card{background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:12px;margin:12px 0 16px 0}</style></head><body><section class="impact-card">
+<h2>Impact in 90 Seconds (Prevention)</h2>
+<p>Current dataset-week <strong>2011-02-14</strong> vs prior <strong>2011-02-07</strong>.</p>
+<ul>
+<li>Total denied exposure (<strong>PROXY</strong>): <strong>$11,210</strong>.</li>
+<li>Total prevented exposure proxy: <strong>$9,134</strong>.</li>
+<li>Top 2 buckets: <strong>AUTH_ELIG, OTHER_PROXY</strong>.</li>
+<li>Top 2 prevented share: <strong>91.5%</strong>.</li>
+<li>Stability confidence: <strong>HIGH</strong> (TOP2_OVERLAP=2/2).</li>
+<li>Workqueue size used: <strong>25</strong>.</li>
+</ul>
+<p><strong>Safe for:</strong></p><ul><li>Directional prevention triage</li><li>Owner routing</li></ul>
+<p><strong>Not safe for:</strong></p><ul><li>Payer-level decisions</li><li>Causal ROI claims</li></ul>
+</section>
+<h2>Prevention scenarios (directional)</h2>
+<table><thead><tr><th>denial_bucket</th><th>prevented_exposure_proxy</th><th>prevent_10</th><th>prevent_20</th><th>prevent_30</th></tr></thead><tbody>
+<tr><td>AUTH_ELIG</td><td>$6,020</td><td>$602</td><td>$1,204</td><td>$1,806</td></tr>
+<tr><td>OTHER_PROXY</td><td>$2,340</td><td>$234</td><td>$468</td><td>$702</td></tr>
+</tbody></table>
+<h2>Levers & owners (next week)</h2>
+<h3>AUTH_ELIG</h3>
+<p><strong>Owner:</strong> Eligibility/Auth team</p>
+<p><strong>Levers:</strong></p><ul><li>Tighten auth-at-registration checks.</li><li>Route missing-auth claims to pre-bill review.</li><li>Apply payer-specific eligibility retry before finalization.</li></ul>
+<p><strong>Evidence needed:</strong></p><ul><li>Auth number</li><li>Eligibility response timestamp</li></ul>
+<h3>OTHER_PROXY</h3>
+<p><strong>Owner:</strong> RCM analyst review</p>
+<p><strong>Levers:</strong></p><ul><li>Manually tag top unresolved reasons each cycle.</li><li>Expand mapping rules from recurring patterns.</li><li>Route ambiguous denials to analyst triage SLA.</li></ul>
+<p><strong>Evidence needed:</strong></p><ul><li>Denial text</li><li>Manual categorization note</li></ul></body></html>
