@@ -1279,13 +1279,15 @@ def main() -> int:
     out_dir = Path(args.out)
     docs_dir = Path("docs")
     out_dir.mkdir(parents=True, exist_ok=True)
+    private_dir = out_dir / "private"
+    private_dir.mkdir(parents=True, exist_ok=True)
     summary_path = out_dir / "denials_recovery_summary_v1.csv"
     workqueue_path = out_dir / "denials_recovery_workqueue_v1.csv"
     aging_path = out_dir / "denials_recovery_aging_bands_v1.csv"
     stability_path = out_dir / "denials_recovery_stability_v1.csv"
     outcomes_path = out_dir / "denials_recovery_outcomes_v1.csv"
     opportunity_sizing_path = out_dir / "denials_recovery_opportunity_sizing_v1.csv"
-    teaching_html_path = out_dir / "denials_recovery_brief_v1_teaching.html"
+    teaching_html_path = private_dir / "denials_recovery_defense_simulator.html"
 
     aging_df = _build_aging_bands(current_df)
     stability_df, top2_overlap = _compute_stability(current_df, prior_df)
@@ -1504,6 +1506,8 @@ def main() -> int:
     if args.write_html:
         print(f"WROTE={brief_html_path}")
     print(f"WROTE={teaching_html_path}")
+    print(f"PRIVATE_ARTIFACT_PATH={(Path(args.out) / 'private' / 'denials_recovery_defense_simulator.html').as_posix()}")
+    print("PRIVATE_ARTIFACT_TRACKED=FALSE")
 
     return 0
 

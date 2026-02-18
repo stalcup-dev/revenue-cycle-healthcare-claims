@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -185,6 +186,28 @@ def check_reason_duplication() -> list[tuple[str, int]]:
     return findings
 
 
+def check_forbidden_private_artifacts() -> list[str]:
+    forbidden = sorted((REPO_ROOT / "docs").rglob("*_teaching*.html"))
+    return [rel(path) for path in forbidden]
+
+
+def check_staged_exports() -> list[str]:
+    try:
+        proc = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return []
+    if proc.returncode != 0:
+        return []
+    staged = [line.strip().replace("\\", "/") for line in proc.stdout.splitlines() if line.strip()]
+    return [path for path in staged if path.startswith("exports/")]
+
+
 def print_section(title: str, lines: list[str]) -> None:
     if not lines:
         return
@@ -220,12 +243,16 @@ def main() -> int:
     missing_readme_targets = check_missing_readme_targets(readme_required_targets)
 
     canonical = evaluate_scope(canonical_files, missing_readme_targets, include_reason_dup=False)
+    forbidden_private_artifacts = check_forbidden_private_artifacts()
+    staged_exports = check_staged_exports()
 
     print("DOCS_AUDIT_REPORT")
     print(f"broken_links={len(canonical['missing_required']) + len(canonical['broken'])}")
     print(f"forbidden_hits={len(canonical['forbidden'])}")
     print(f"plain_path_refs={len(canonical['plain_refs'])}")
     print(f"reason_dup_hits={len(canonical['reason_dups'])}")
+    print(f"forbidden_private_artifact_hits={len(forbidden_private_artifacts)}")
+    print(f"staged_export_hits={len(staged_exports)}")
 
     print_section("MISSING_README_LINK_TARGETS", canonical["missing_required"])
     print_section("BROKEN_LINKS", [f"{f} -> {target}" for f, target in canonical["broken"]])
@@ -241,6 +268,14 @@ def main() -> int:
         "REASON_DUPLICATION",
         [f"{f} -> Reason: appears {count} times (max 1)" for f, count in canonical["reason_dups"]],
     )
+    print_section(
+        "FORBIDDEN_PRIVATE_ARTIFACT_FOUND",
+        forbidden_private_artifacts,
+    )
+    print_section(
+        "FORBIDDEN_STAGED_EXPORT_FOUND",
+        staged_exports,
+    )
 
     canonical_failed = any(
         [
@@ -249,6 +284,8 @@ def main() -> int:
             canonical["forbidden"],
             canonical["plain_refs"],
             canonical["reason_dups"],
+            forbidden_private_artifacts,
+            staged_exports,
         ]
     )
 
