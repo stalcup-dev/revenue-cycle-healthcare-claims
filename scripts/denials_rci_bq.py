@@ -245,6 +245,10 @@ def _to_html_document(title: str, content_html: str, visual_html: str) -> str:
     .bar-track {{ width: 100%; height: 14px; border: 1px solid #d0d7de; border-radius: 3px; overflow: hidden; background: #f6f8fa; }}
     .bar-fill {{ height: 100%; background: #1f77b4; }}
     .bar-pct {{ font-size: 12px; text-align: right; color: #374151; }}
+    .stacked-bar {{ display: flex; width: 100%; height: 18px; border: 1px solid #d0d7de; border-radius: 4px; overflow: hidden; margin: 8px 0 8px; }}
+    .stacked-legend {{ font-size: 12px; color: #374151; margin-bottom: 12px; }}
+    .mix-grid table {{ margin-top: 8px; }}
+    .heat-cell {{ font-weight: 600; text-align: center; }}
   </style>
 </head>
 <body>
@@ -256,7 +260,11 @@ def _to_html_document(title: str, content_html: str, visual_html: str) -> str:
 """
 
 
-def _build_visual_html(patterns_overall: pd.DataFrame) -> str:
+def _build_visual_html(
+    patterns_overall: pd.DataFrame,
+    summary_out: pd.DataFrame,
+    pattern_grouped: pd.DataFrame,
+) -> str:
     top5 = patterns_overall.head(5).copy()
     total = float(patterns_overall["denied_amount_sum"].sum()) if not patterns_overall.empty else 0.0
     shown = float(top5["denied_amount_sum"].sum()) if not top5.empty else 0.0
@@ -285,7 +293,129 @@ def _build_visual_html(patterns_overall: pd.DataFrame) -> str:
             + "</div>"
         )
 
-    return "<div class='visual-card'><h2>Pareto (Top 5 patterns overall)</h2>" + "".join(rows) + "</div>"
+    pareto_html = "<div class='visual-card'><h2>Pareto (Top 5 patterns overall)</h2>" + "".join(rows) + "</div>"
+
+    # Bucket concentration stacked bar (top buckets + remainder)
+    bucket_rows = (
+        summary_out[["denial_bucket", "share"]]
+        .sort_values(["share", "denial_bucket"], ascending=[False, True], kind="mergesort")
+        .head(5)
+        .copy()
+    )
+    bucket_used = float(bucket_rows["share"].sum()) if not bucket_rows.empty else 0.0
+    bucket_remainder = max(0.0, 1.0 - bucket_used)
+    palette = ["#1f77b4", "#ff7f0e", "#2ca02c", "#9467bd", "#8c564b", "#9ca3af"]
+    stacked_parts: list[str] = []
+    legend_parts: list[str] = []
+    for idx, row in bucket_rows.reset_index(drop=True).iterrows():
+        share = float(row["share"])
+        color = palette[idx % len(palette)]
+        stacked_parts.append(f'<span style="width:{share * 100.0:.2f}%;background:{color};"></span>')
+        legend_parts.append(
+            f'<span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:{color};margin-right:4px;"></span>{escape(str(row["denial_bucket"]))} ({_fmt_pct(share)})</span>'
+        )
+    if bucket_remainder > 1e-9:
+        stacked_parts.append(f'<span style="width:{bucket_remainder * 100.0:.2f}%;background:{palette[-1]};"></span>')
+        legend_parts.append(
+            f'<span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:{palette[-1]};margin-right:4px;"></span>Remainder ({_fmt_pct(bucket_remainder)})</span>'
+        )
+    bucket_html = (
+        "<div class='visual-card'>"
+        "<h2>Bucket concentration</h2>"
+        "<div class='stacked-bar'>"
+        + "".join(stacked_parts)
+        + "</div>"
+        + "<div class='stacked-legend'>"
+        + "".join(legend_parts)
+        + "</div>"
+        + "<p><em>directional signal from proxies</em></p>"
+        + "</div>"
+    )
+
+    # Pattern mix grid for top 2 buckets x top action categories
+    top_buckets = (
+        summary_out.sort_values(["rank", "denial_bucket"], ascending=[True, True], kind="mergesort")
+        .head(2)["denial_bucket"]
+        .tolist()
+    )
+    mix_base = pattern_grouped[pattern_grouped["denial_bucket"].isin(top_buckets)].copy()
+    mix_agg = (
+        mix_base.groupby(["denial_bucket", "action_category"], as_index=False)
+        .agg(denied_amount_sum=("denied_amount_sum", "sum"))
+        .sort_values(["denied_amount_sum", "action_category"], ascending=[False, True], kind="mergesort")
+    )
+    top_actions = mix_agg["action_category"].drop_duplicates().head(4).tolist()
+    if len(top_actions) < 3:
+        all_actions = (
+            pattern_grouped["action_category"]
+            .drop_duplicates()
+            .sort_values(kind="mergesort")
+            .tolist()
+        )
+        for action in all_actions:
+            if action not in top_actions:
+                top_actions.append(action)
+            if len(top_actions) >= 3:
+                break
+    top_actions = top_actions[:4]
+    mix_rows: list[str] = []
+    for bucket in top_buckets:
+        bucket_total = float(mix_base[mix_base["denial_bucket"] == bucket]["denied_amount_sum"].sum())
+        row_cells = [f"<td>{escape(bucket)}</td>"]
+        for action in top_actions:
+            amt = float(
+                mix_base[
+                    (mix_base["denial_bucket"] == bucket) & (mix_base["action_category"] == action)
+                ]["denied_amount_sum"].sum()
+            )
+            share = (amt / bucket_total) if bucket_total > 0 else 0.0
+            alpha = 0.10 + (0.70 * share)
+            cell_style = f"background: rgba(31,119,180,{alpha:.3f});"
+            row_cells.append(f"<td class='heat-cell' style='{cell_style}'>{_fmt_pct(share)}</td>")
+        mix_rows.append("<tr>" + "".join(row_cells) + "</tr>")
+
+    mix_header = "<tr><th>denial_bucket</th>" + "".join(f"<th>{escape(a)}</th>" for a in top_actions) + "</tr>"
+    mix_html = (
+        "<div class='visual-card mix-grid'>"
+        "<h2>Pattern mix (bucket × action category)</h2>"
+        "<table><thead>"
+        + mix_header
+        + "</thead><tbody>"
+        + "".join(mix_rows)
+        + "</tbody></table>"
+        + "<p><em>not a causal claim</em></p>"
+        + "</div>"
+    )
+
+    # Owner workload bars (directional touches proxy)
+    owner_workload = (
+        pattern_grouped.groupby("owner", as_index=False)
+        .agg(denial_count=("denial_count", "sum"))
+        .sort_values(["denial_count", "owner"], ascending=[False, True], kind="mergesort")
+        .head(5)
+        .reset_index(drop=True)
+    )
+    max_count = float(owner_workload["denial_count"].max()) if not owner_workload.empty else 1.0
+    owner_rows: list[str] = []
+    for _, row in owner_workload.iterrows():
+        count = int(row["denial_count"])
+        width = (count / max_count * 100.0) if max_count > 0 else 0.0
+        owner_rows.append(
+            "<div class='bar-row'>"
+            + f"<div class='bar-label'>{escape(str(row['owner']))}</div>"
+            + f"<div class='bar-track'><div class='bar-fill' style='width:{width:.2f}%; background:#2563eb;'></div></div>"
+            + f"<div class='bar-pct'>{count}</div>"
+            + "</div>"
+        )
+    owner_html = (
+        "<div class='visual-card'>"
+        "<h2>Owner workload (directional)</h2>"
+        + "".join(owner_rows)
+        + "<p><em>directional workload estimate</em></p>"
+        + "</div>"
+    )
+
+    return pareto_html + bucket_html + mix_html + owner_html
 
 
 def parse_args() -> argparse.Namespace:
@@ -498,7 +628,7 @@ def main() -> int:
     markdown = "\n".join(md_lines).strip() + "\n"
 
     patterns_overall = pattern_grouped.sort_values(["denied_amount_sum", "pattern_text"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
-    visual_html = _build_visual_html(patterns_overall)
+    visual_html = _build_visual_html(patterns_overall, summary_out, pattern_grouped)
     body_html = _markdown_to_html(markdown)
     html_doc = _to_html_document("Denials Root Cause Intelligence Brief v1", body_html, visual_html)
 
