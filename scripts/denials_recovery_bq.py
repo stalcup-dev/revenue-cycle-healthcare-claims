@@ -535,6 +535,7 @@ def _build_teaching_html(
     summary_df: pd.DataFrame,
     outcomes_metrics: dict[str, float] | None,
     impact: dict[str, object],
+    capacity_summary: dict[str, float | str | bool],
 ) -> str:
     top_row = summary_df.iloc[0] if not summary_df.empty else None
     worked_example = (
@@ -543,12 +544,31 @@ def _build_teaching_html(
         if top_row is not None
         else "No summary rows available in this run."
     )
-    metrics_block = (
-        f"<li>Matched claims: {int(outcomes_metrics['matched_claims'])}</li>"
-        f"<li>Recovered sum: {_fmt_money(outcomes_metrics['recovery_realized_sum'])}</li>"
-        f"<li>Top-bucket recovery rate: {_fmt_pct(outcomes_metrics['top_bucket_recovery_rate'])}</li>"
-        if outcomes_metrics is not None
-        else "<li>No outcomes file provided in this run.</li>"
+    matched_claims = int(outcomes_metrics["matched_claims"]) if outcomes_metrics is not None else 0
+    false_positive_rate = float(outcomes_metrics["false_positive_rate"]) if outcomes_metrics is not None else 0.0
+    expected_recovered_amt = float(capacity_summary["expected_recovered_amt"])
+    weekly_touch_budget_minutes = float(capacity_summary["weekly_touch_budget_minutes"])
+    expected_touches = float(capacity_summary["expected_touches"])
+    has_outcomes = bool(capacity_summary["has_outcomes"])
+    stability_conf = escape(str(impact["stability_confidence"]))
+    evidence_conf = escape(str(impact["evidence_confidence"]))
+    executive_line = (
+        "As of "
+        + escape(str(current_week_key))
+        + ", we have IMPACT_TOTAL_DENIED_PROXY="
+        + escape(f"{float(impact['current_total_denied_amount_sum']):.2f}")
+        + " in concentrated exposure across IMPACT_TOP2_BUCKETS="
+        + escape(str(impact["top2_bucket_names"]))
+        + ", IMPACT_STABILITY_CONFIDENCE="
+        + stability_conf
+        + ", IMPACT_EVIDENCE_CONFIDENCE="
+        + evidence_conf
+        + "."
+    )
+    roi_quality_line = (
+        f"CAPACITY_EXPECTED_RECOVERED_AMT={expected_recovered_amt:.2f} (directional)."
+        if has_outcomes
+        else "Evidence confidence too low for ROI claim."
     )
     return f"""<!doctype html>
 <html lang="en">
@@ -566,65 +586,73 @@ def _build_teaching_html(
 </head>
 <body>
   <h1>Denials Recovery Teaching Guide v1</h1>
-  <h2>What this is safe for</h2>
+  <h2>Executive Compression (1-Line Answer)</h2>
+  <p>{executive_line}</p>
+  <h2>Board Interruption Simulation</h2>
+  <h3>CFO Challenge</h3>
+  <p><strong>Question:</strong> Is this real recoverable cash or proxy noise?</p>
+  <p><strong>Structured response:</strong> This is <strong>directional</strong> planning from <strong>PROXY</strong> exposure with explicit confidence separation: stability={stability_conf}, evidence={evidence_conf}.</p>
+  <p><strong>Escalation fallback:</strong> Keep actions reversible until evidence confidence improves.</p>
+  <h3>COO Challenge</h3>
+  <p><strong>Question:</strong> Why allocate operations time here this week?</p>
+  <p><strong>Structured response:</strong> Top buckets remain concentrated with stable overlap, so directional queue work has the highest expected leverage first.</p>
+  <p><strong>Escalation fallback:</strong> If overlap weakens, switch to investigate mode before scaling.</p>
+  <h3>VP Revenue Cycle Challenge</h3>
+  <p><strong>Question:</strong> What makes this operationally defensible?</p>
+  <p><strong>Structured response:</strong> We enforce owner/evidence routing, confidence labels, and proxy disclaimers to avoid overclaiming.</p>
+  <p><strong>Escalation fallback:</strong> Escalate data-contract improvements for payer and adjudication fields.</p>
+  <h3>Compliance Challenge</h3>
+  <p><strong>Question:</strong> Are we making unsupported claims from proxies?</p>
+  <p><strong>Structured response:</strong> No; the brief uses directional language, explicit confidence, and forbids causal ROI claims.</p>
+  <p><strong>Escalation fallback:</strong> Restrict to triage until higher-fidelity fields are available.</p>
+  <h2>Capital Allocation Framing</h2>
+  <h3>If We Add 1 FTE</h3>
+  <p>weekly-touch-budget-minutes={weekly_touch_budget_minutes:.2f}; CAPACITY_EXPECTED_TOUCHES={expected_touches:.2f}. Additional touch capacity is modeled directionally from this baseline.</p>
+  <h3>If We Remove 1 FTE</h3>
+  <p>Directional throughput falls from the same touch baseline, increasing unresolved queue pressure if mix remains unchanged.</p>
+  <h3>Marginal ROI Curve Logic</h3>
+  <p>{escape(roi_quality_line)}</p>
+  <h2>Failure Modes & Invalidation Signals</h2>
   <ul>
-    <li>Directional triage prioritization from dbt mart outputs.</li>
-    <li>Weekly owner routing and evidence planning.</li>
-    <li>Stability checks between current and prior dataset-week.</li>
+    <li>Mart schema drift: expected fields missing or changed.</li>
+    <li>Proxy distortion: proxy exposure diverges from observed outcomes.</li>
+    <li>Stability collapse: TOP2_OVERLAP drops and IMPACT_STABILITY_CONFIDENCE weakens.</li>
+    <li>Evidence instability: low OUTCOMES_SAMPLE_N lowers IMPACT_EVIDENCE_CONFIDENCE.</li>
   </ul>
-  <h2>What this is NOT safe for</h2>
+  <h2>False Positives & Selection Bias</h2>
+  <h3>Why false positives occur</h3>
   <ul>
-    <li>Payer-level interventions (payer identity is missing in selected marts).</li>
-    <li>Guaranteed recovery forecasting from proxy amounts.</li>
-    <li>Causal claims about denial root cause.</li>
-  </ul>
-  <h2>Decision tree</h2>
-  <ul>
-    <li>If top-2 overlap is stable, focus those buckets first.</li>
-    <li>If overlap breaks, run reversible investigation before scaling.</li>
-    <li>Re-check next dataset-week before irreversible action.</li>
-  </ul>
-  <h2>90-second talk track</h2>
-  <ul>
-    <li>Problem: limited capacity and noisy denial reason data.</li>
-    <li>Method: bucket + weighted scoring + week-over-week stability.</li>
-    <li>Decision: focus top buckets with explicit proxy guardrails.</li>
-    <li>Action: route queue with owner/evidence requirements.</li>
-    <li>Falsification: if rank/share stability changes, re-prioritize.</li>
-  </ul>
-  <h2>How to Explain This in an Interview</h2>
-  <h3>30-second answer</h3>
-  <p>We rank denials using a deterministic weighted score from dbt marts, then route the top queue by owner and evidence. Current focus is {escape(str(impact["top2_bucket_names"]))}, covering {float(impact["top2_priority_share_pct"]):.1f}% of weighted exposure.</p>
-  <h3>60-second answer</h3>
-  <p>For week {escape(str(impact["current_week_key"]))}, directional denied exposure is {_fmt_money(float(impact["current_total_denied_amount_sum"]))}. Top 2 buckets represent {float(impact["top2_priority_share_pct"]):.1f}% of weighted exposure, with stability {int(impact["top2_overlap"])}/2 ({escape(str(impact["stability_confidence"]))}) and evidence confidence {escape(str(impact["evidence_confidence"]))}.</p>
-  <h3>90-second answer</h3>
-  <p>We use this for directional triage, not causal or payer-level commitments. Workqueue size is {int(impact["workqueue_size_used"])}, expected recovery is {_fmt_money(float(impact["expected_recovery_amt"]))} (directional), and actions stay reversible until richer marts add payer identity and CARC/RARC.</p>
-  <h2>Hostile questions</h2>
-  <ol>
-    <li>Why no payer insights? Because payer identity is absent in this mart layer.</li>
-    <li>Is this true denied dollars? No, denied amount is proxy-derived.</li>
-    <li>Can we claim ROI? Not yet; outcomes are directional unless adjudication-sourced.</li>
-    <li>Why this week anchor? Uses dataset max week for deterministic comparisons.</li>
-    <li>How do you reduce proxy risk? Add payer_id, CARC/RARC, true service dates in marts.</li>
-  </ol>
-  <h2>Selection bias and false positives</h2>
-  <h3>Why false positives happen</h3>
-  <ul>
-    <li>Proxy denied amounts can rank claims that later resolve as non-recoverable.</li>
-    <li>Short windows can over-represent one denial process phase.</li>
-    <li>Manual outcomes entry can lag true adjudication timing.</li>
+    <li>Proxy denied amounts can rank claims that later close as non-recoverable.</li>
+    <li>Short windows can overweight one process phase.</li>
+    <li>Outcomes capture can lag adjudication timing.</li>
   </ul>
   <h3>How to reduce them</h3>
   <ul>
-    <li>Collect outcomes weekly and recalibrate bucket weights every cycle.</li>
-    <li>Add payer_id and CARC/RARC to reduce OTHER_PROXY routing noise.</li>
-    <li>Track resolved-within-window by bucket and de-prioritize low-yield buckets.</li>
+    <li>Collect outcomes every cycle and recalibrate directional assumptions.</li>
+    <li>Add payer_id and CARC/RARC to reduce OTHER_PROXY noise.</li>
+    <li>Monitor resolved-within-window by bucket and downrank low-yield buckets.</li>
   </ul>
+  <h3>What metric to monitor weekly</h3>
+  <p>FALSE_POSITIVE_RATE={false_positive_rate:.4f}</p>
+  <h2>30-Second Answer (Operator)</h2>
+  <p>We rank denials with deterministic weighted scoring, route top buckets first, and keep actions reversible while proxy caveats remain explicit.</p>
+  <h2>60-Second Answer (Manager)</h2>
+  <p>Current week {escape(str(impact["current_week_key"]))} shows directional denied exposure {_fmt_money(float(impact["current_total_denied_amount_sum"]))}, with stability confidence {stability_conf} and evidence confidence {evidence_conf}; this frames capital allocation without overclaiming.</p>
+  <h2>90-Second Answer (Director)</h2>
+  <p>We tie capital allocation to touch capacity, expected directional recovery, and confidence split (stability vs evidence). Decision remains reversible until confidence improves.</p>
+  <h2>Hostile questions</h2>
+  <ol>
+    <li>Why no payer insights? Payer identity is absent in this mart layer.</li>
+    <li>Is this true denied dollars? No, denied amount is proxy-derived.</li>
+    <li>Can we claim ROI? Not unless evidence confidence is adequate.</li>
+    <li>Why this week anchor? Uses dataset max week for deterministic comparisons.</li>
+    <li>How do you reduce proxy risk? Add payer_id, CARC/RARC, true service dates.</li>
+  </ol>
   <h2>How to size action</h2>
   <ul>
-    <li>Start with weekly touch budget and default touch minutes.</li>
-    <li>Estimate touches, then convert to directional resolutions using observed resolved rate.</li>
-    <li>Translate to directional recovered dollars and treat as planning bounds, not guarantees.</li>
+    <li>Use weekly-touch-budget-minutes and CAPACITY_EXPECTED_TOUCHES as the capacity floor.</li>
+    <li>Translate touches into directional outcomes only when evidence confidence allows.</li>
+    <li>Treat CAPACITY_EXPECTED_RECOVERED_AMT as directional, not guaranteed.</li>
   </ul>
   <h2>Worked example</h2>
   <p>{escape(worked_example)}</p>
@@ -645,7 +673,12 @@ def _build_teaching_html(
     </tbody>
   </table>
   <h2>Outcomes snapshot</h2>
-  <ul>{metrics_block}</ul>
+  <ul>
+    <li>Matched claims: {matched_claims}</li>
+    <li>FALSE_POSITIVE_RATE={false_positive_rate:.4f}</li>
+    <li>IMPACT_STABILITY_CONFIDENCE={stability_conf}</li>
+    <li>IMPACT_EVIDENCE_CONFIDENCE={evidence_conf}</li>
+  </ul>
   <p>Source: <code>{escape(source_fqn)}</code></p>
 </body>
 </html>
@@ -1386,6 +1419,7 @@ def main() -> int:
             summary_df=summary_out,
             outcomes_metrics=outcomes_metrics,
             impact=impact,
+            capacity_summary=capacity_summary,
         ),
         encoding="utf-8",
     )
