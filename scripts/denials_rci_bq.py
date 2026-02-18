@@ -164,6 +164,11 @@ def _fmt_pct(value: float) -> str:
     return f"{value * 100.0:.1f}%"
 
 
+def _safe_md_cell(value: object) -> str:
+    text = str(value) if value is not None else ""
+    return text.replace("|", " / ").replace("\n", " ").strip()
+
+
 def _run_query(client: bigquery.Client, sql: str, params: list[bigquery.ScalarQueryParameter]) -> pd.DataFrame:
     cfg = bigquery.QueryJobConfig(query_parameters=params)
     return client.query(sql, job_config=cfg).result().to_dataframe()
@@ -252,7 +257,6 @@ def _to_html_document(title: str, content_html: str, visual_html: str) -> str:
   </style>
 </head>
 <body>
-  <h1>{escape(title)}</h1>
   {visual_html}
   {content_html}
 </body>
@@ -410,6 +414,7 @@ def _build_visual_html(
     owner_html = (
         "<div class='visual-card'>"
         "<h2>Owner workload (directional)</h2>"
+        "<p><strong>Metric: denial_count (claims) - directional estimate</strong></p>"
         + "".join(owner_rows)
         + "<p><em>directional workload estimate</em></p>"
         + "</div>"
@@ -583,12 +588,12 @@ def main() -> int:
     md_lines.extend([
         "",
         "## Top Patterns (within buckets)",
-        "| denial_bucket | pattern_text | denied_amount_sum | denial_count | share_within_bucket |",
-        "|---|---|---:|---:|---:|",
+        "| denial_bucket | pattern_text | action_category | owner | denied_amount_sum | denial_count | share_within_bucket |",
+        "|---|---|---|---|---:|---:|---:|",
     ])
     for _, row in patterns_out.iterrows():
         md_lines.append(
-            f"| {row['denial_bucket']} | {row['pattern_text']} | {_fmt_money(float(row['denied_amount_sum']))} | {int(row['denial_count'])} | {_fmt_pct(float(row['share_within_bucket']))} |"
+            f"| {_safe_md_cell(row['denial_bucket'])} | {_safe_md_cell(row['pattern_text'])} | {_safe_md_cell(row['action_category'])} | {_safe_md_cell(row['owner'])} | {_fmt_money(float(row['denied_amount_sum']))} | {int(row['denial_count'])} | {_fmt_pct(float(row['share_within_bucket']))} |"
         )
 
     md_lines.extend([

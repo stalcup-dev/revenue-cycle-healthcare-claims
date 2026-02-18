@@ -14,22 +14,22 @@
 - DUPLICATE: denied $0, priority $0, rank 4.
 
 ## Top Patterns (within buckets)
-| denial_bucket | pattern_text | denied_amount_sum | denial_count | share_within_bucket |
-|---|---|---:|---:|---:|
-| AUTH_ELIG | noncovered | c | coverage verification / abn workflow | $19,710 | 357 | 95.4% |
-| AUTH_ELIG | noncovered | o | coverage verification / abn workflow | $780 | 14 | 3.8% |
-| AUTH_ELIG | noncovered | n | coverage verification / abn workflow | $180 | 1 | 0.9% |
-| OTHER_PROXY | other denial | o | specialist review | $12,840 | 537 | 69.2% |
-| OTHER_PROXY | allowed | c | none - claim allowed | $2,680 | 101 | 14.4% |
-| OTHER_PROXY | allowed | o | none - claim allowed | $2,180 | 268 | 11.7% |
-| OTHER_PROXY | other denial | c | specialist review | $600 | 11 | 3.2% |
-| OTHER_PROXY | allowed | n | none - claim allowed | $70 | 46 | 0.4% |
-| CODING_DOC | medically unnecessary | n | documentation improvement | $430 | 78 | 82.7% |
-| CODING_DOC | bundled / no pay | z | modifier / bundling guardrails | $90 | 2 | 17.3% |
-| CODING_DOC | medically unnecessary | o | documentation improvement | $0 | 3 | 0.0% |
-| DUPLICATE | administrative |  | duplicate - exclude | $0 | 58 | 0.0% |
-| DUPLICATE | administrative | c | duplicate - exclude | $0 | 1 | 0.0% |
-| DUPLICATE | administrative | o | duplicate - exclude | $0 | 2 | 0.0% |
+| denial_bucket | pattern_text | action_category | owner | denied_amount_sum | denial_count | share_within_bucket |
+|---|---|---|---|---:|---:|---:|
+| AUTH_ELIG | noncovered  /  c  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $19,710 | 357 | 95.4% |
+| AUTH_ELIG | noncovered  /  o  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $780 | 14 | 3.8% |
+| AUTH_ELIG | noncovered  /  n  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $180 | 1 | 0.9% |
+| OTHER_PROXY | other denial  /  o  /  specialist review | OTHER_ACTION | RCM analyst review | $12,840 | 537 | 69.2% |
+| OTHER_PROXY | allowed  /  c  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $2,680 | 101 | 14.4% |
+| OTHER_PROXY | allowed  /  o  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $2,180 | 268 | 11.7% |
+| OTHER_PROXY | other denial  /  c  /  specialist review | OTHER_ACTION | RCM analyst review | $600 | 11 | 3.2% |
+| OTHER_PROXY | allowed  /  n  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $70 | 46 | 0.4% |
+| CODING_DOC | medically unnecessary  /  n  /  documentation improvement | MEDICAL_RECORDS | Coding/CDI | $430 | 78 | 82.7% |
+| CODING_DOC | bundled / no pay  /  z  /  modifier / bundling guardrails | CODING_MODIFIER | Coding/CDI | $90 | 2 | 17.3% |
+| CODING_DOC | medically unnecessary  /  o  /  documentation improvement | MEDICAL_RECORDS | Coding/CDI | $0 | 3 | 0.0% |
+| DUPLICATE | administrative  /    /  duplicate - exclude | DUPLICATE | Billing | $0 | 58 | 0.0% |
+| DUPLICATE | administrative  /  c  /  duplicate - exclude | DUPLICATE | Billing | $0 | 1 | 0.0% |
+| DUPLICATE | administrative  /  o  /  duplicate - exclude | DUPLICATE | Billing | $0 | 2 | 0.0% |
 
 ## Action categories + owners
 | action_category | owner | denied_amount_sum | pattern_count |
