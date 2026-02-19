@@ -155,6 +155,28 @@ UPSTREAM_FIX_MAP = {
     "OTHER_ACTION": "Expand denial reason standardization dictionary.",
 }
 
+LEVER_MAP = {
+    "AUTH_REQUIRED": "Add pre-bill auth gate and exception queue.",
+    "ELIGIBILITY": "Run same-day eligibility reverification before submit.",
+    "CODING_MODIFIER": "Apply coding edit rules for recurring modifier/dx misses.",
+    "MEDICAL_RECORDS": "Attach required clinical packet at first submission.",
+    "TIMELY_FILING": "Escalate aging claims before filing-limit threshold.",
+    "DUPLICATE": "Enable duplicate fingerprint check pre-submit.",
+    "CONTRACTUAL": "Route contractual disputes to contract variance review.",
+    "OTHER_ACTION": "Manual triage and classify to reduce OTHER_ACTION share.",
+}
+
+KPI_MAP = {
+    "AUTH_REQUIRED": "Auth pass rate before submission",
+    "ELIGIBILITY": "Eligibility pass rate before submission",
+    "CODING_MODIFIER": "Coding correction hit rate",
+    "MEDICAL_RECORDS": "Documentation completeness on first pass",
+    "TIMELY_FILING": "Filing-timeliness compliance",
+    "DUPLICATE": "Duplicate-denial recurrence rate",
+    "CONTRACTUAL": "Contract variance resolution rate",
+    "OTHER_ACTION": "Unclassified denial share",
+}
+
 
 def _fmt_money(value: float) -> str:
     return f"${value:,.0f}"
@@ -420,7 +442,182 @@ def _build_visual_html(
         + "</div>"
     )
 
-    return pareto_html + bucket_html + mix_html + owner_html
+    monday_html = (
+        "<div class='visual-card'>"
+        "<h2>What to do Monday</h2>"
+        "<p>Use the operational ticket pack: "
+        "<a href='denials_rci_ticket_pack_v1.html'>docs/denials_rci_ticket_pack_v1.html</a>.</p>"
+        "<p><em>Route top patterns to owners with evidence-first execution.</em></p>"
+        "</div>"
+    )
+
+    return pareto_html + bucket_html + mix_html + owner_html + monday_html
+
+
+def _evidence_readiness_pct(evidence_text: str) -> int:
+    parts = [p.strip() for p in str(evidence_text).split(";") if p.strip()]
+    return min(100, len(parts) * 50)
+
+
+def _build_ticket_pack(ticket_patterns: pd.DataFrame) -> pd.DataFrame:
+    out = ticket_patterns.copy()
+    if out.empty:
+        return out
+
+    total = float(out["denied_amount_sum"].sum())
+    out = out.sort_values(
+        ["denied_amount_sum", "denial_count", "pattern_text", "denial_bucket"],
+        ascending=[False, False, True, True],
+        kind="mergesort",
+    ).reset_index(drop=True)
+    out["ticket_rank"] = out.index + 1
+    out["operational_lever"] = out["action_category"].map(LEVER_MAP).fillna(LEVER_MAP["OTHER_ACTION"])
+    out["kpi"] = out["action_category"].map(KPI_MAP).fillna(KPI_MAP["OTHER_ACTION"])
+    out["impact_share"] = out["denied_amount_sum"] / total if total > 0 else 0.0
+    out["evidence_readiness_pct"] = out["evidence_checklist"].map(_evidence_readiness_pct).astype(int)
+    out["evidence_readiness"] = out["evidence_readiness_pct"].map(
+        lambda x: "READY" if x >= 100 else ("PARTIAL" if x >= 50 else "WEAK")
+    )
+    out["payer_dim_status"] = "MISSING_IN_MART"
+    return out[
+        [
+            "ticket_rank",
+            "denial_bucket",
+            "pattern_text",
+            "action_category",
+            "owner",
+            "operational_lever",
+            "evidence_checklist",
+            "evidence_readiness_pct",
+            "evidence_readiness",
+            "kpi",
+            "denied_amount_sum",
+            "denial_count",
+            "share_within_bucket",
+            "impact_share",
+            "payer_dim_status",
+        ]
+    ]
+
+
+def _ticket_pack_markdown(source_fqn: str, current_week: date, tickets_df: pd.DataFrame) -> str:
+    top10 = tickets_df.head(10).copy()
+    owner_rollup = (
+        top10.groupby("owner", as_index=False)
+        .agg(ticket_count=("ticket_rank", "count"), denied_amount_sum=("denied_amount_sum", "sum"))
+        .sort_values(["denied_amount_sum", "owner"], ascending=[False, True], kind="mergesort")
+    )
+    lines: list[str] = [
+        "# Denials RCI Ticket Pack v1",
+        "",
+        f"Source: `{source_fqn}` (dbt mart only). Week key: `{pd.to_datetime(current_week).strftime('%Y-%m-%d')}`.",
+        "",
+        "## What to do Monday",
+        "- Open the Top 10 pattern tickets below and assign each to the listed owner the same day.",
+        "- Require listed evidence before changing workflow or escalation path.",
+        "- Track the listed KPI weekly; if KPI does not improve, reclassify the pattern and lever.",
+        "",
+        "## Top 10 patterns -> owner -> lever -> evidence -> KPI",
+        "| rank | denial_bucket | pattern_text | owner | operational_lever | evidence_checklist | KPI | impact_share |",
+        "|---:|---|---|---|---|---|---|---:|",
+    ]
+    for _, row in top10.iterrows():
+        lines.append(
+            "| "
+            + f"{int(row['ticket_rank'])} | {_safe_md_cell(row['denial_bucket'])} | {_safe_md_cell(row['pattern_text'])} | "
+            + f"{_safe_md_cell(row['owner'])} | {_safe_md_cell(row['operational_lever'])} | {_safe_md_cell(row['evidence_checklist'])} | "
+            + f"{_safe_md_cell(row['kpi'])} | {_fmt_pct(float(row['impact_share']))} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Owner workload (directional)",
+            "| owner | ticket_count | denied_amount_sum |",
+            "|---|---:|---:|",
+        ]
+    )
+    for _, row in owner_rollup.iterrows():
+        lines.append(f"| {_safe_md_cell(row['owner'])} | {int(row['ticket_count'])} | {_fmt_money(float(row['denied_amount_sum']))} |")
+
+    lines.extend(
+        [
+            "",
+            "## Guardrails",
+            "- Directional prioritization only; denied dollar values are proxies.",
+            "- No payer identity claims; `payer_dim_status = MISSING_IN_MART`.",
+            "- No date-dimension changes in this ticket pack slice.",
+        ]
+    )
+    return "\n".join(lines).strip() + "\n"
+
+
+def _build_ticket_pack_visual_html(tickets_df: pd.DataFrame) -> str:
+    top10 = tickets_df.head(10).copy()
+    if top10.empty:
+        return "<div class='visual-card'><h2>RCI Ticket Pack</h2><p>No ticket rows available.</p></div>"
+
+    owner_rollup = (
+        top10.groupby("owner", as_index=False)
+        .agg(denial_count=("denial_count", "sum"))
+        .sort_values(["denial_count", "owner"], ascending=[False, True], kind="mergesort")
+        .head(5)
+    )
+    max_owner = float(owner_rollup["denial_count"].max()) if not owner_rollup.empty else 1.0
+    owner_rows: list[str] = []
+    for _, row in owner_rollup.iterrows():
+        count = int(row["denial_count"])
+        width = (count / max_owner * 100.0) if max_owner > 0 else 0.0
+        owner_rows.append(
+            "<div class='bar-row'>"
+            + f"<div class='bar-label'>{escape(str(row['owner']))}</div>"
+            + f"<div class='bar-track'><div class='bar-fill' style='width:{width:.2f}%; background:#1d4ed8;'></div></div>"
+            + f"<div class='bar-pct'>{count} claims</div>"
+            + "</div>"
+        )
+
+    impact_rows: list[str] = []
+    max_share = float(top10["impact_share"].max()) if not top10.empty else 1.0
+    for _, row in top10.iterrows():
+        share = float(row["impact_share"])
+        width = (share / max_share * 100.0) if max_share > 0 else 0.0
+        impact_rows.append(
+            "<div class='bar-row'>"
+            + f"<div class='bar-label'>#{int(row['ticket_rank'])} {escape(str(row['denial_bucket']))}</div>"
+            + f"<div class='bar-track'><div class='bar-fill' style='width:{width:.2f}%; background:#0ea5e9;'></div></div>"
+            + f"<div class='bar-pct'>{_fmt_pct(share)}</div>"
+            + "</div>"
+        )
+
+    readiness_rows: list[str] = []
+    for _, row in top10.iterrows():
+        pct = int(row["evidence_readiness_pct"])
+        color = "#16a34a" if pct >= 100 else ("#f59e0b" if pct >= 50 else "#ef4444")
+        readiness_rows.append(
+            "<div class='bar-row'>"
+            + f"<div class='bar-label'>#{int(row['ticket_rank'])} {escape(str(row['owner']))}</div>"
+            + f"<div class='bar-track'><div class='bar-fill' style='width:{pct:.2f}%; background:{color};'></div></div>"
+            + f"<div class='bar-pct'>{pct}%</div>"
+            + "</div>"
+        )
+
+    return (
+        "<div class='visual-card'>"
+        "<h2>Owner workload (directional)</h2>"
+        "<p><strong>Metric: denial_count (claims) for Top 10 ticket patterns.</strong></p>"
+        + "".join(owner_rows)
+        + "</div>"
+        + "<div class='visual-card'>"
+        + "<h2>Top pattern impact share</h2>"
+        + "".join(impact_rows)
+        + "<p><em>share of denied_amount_proxy across Top 10 ticket patterns</em></p>"
+        + "</div>"
+        + "<div class='visual-card'>"
+        + "<h2>Evidence readiness (checklist completeness proxy)</h2>"
+        + "".join(readiness_rows)
+        + "<p><em>proxy from checklist item count; not an adjudication quality measure</em></p>"
+        + "</div>"
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -432,6 +629,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--workqueue-size", type=int, default=200)
     p.add_argument("--summary-limit", type=int, default=50)
     p.add_argument("--patterns-per-bucket", type=int, default=5)
+    p.add_argument("--ticket-pack-size", type=int, default=10)
     p.add_argument("--lookback-days", type=int, default=14)
     p.add_argument("--as-of-date", default="", help="Optional YYYY-MM-DD anchor")
     p.add_argument("--dry-run-sql", action="store_true")
@@ -623,6 +821,16 @@ def main() -> int:
     for line in upstream_lines:
         md_lines.append(f"- {line}")
 
+    md_lines.extend(
+        [
+            "",
+            "## What to do Monday",
+            "- Open `docs/denials_rci_ticket_pack_v1.html` for the Top 10 operational ticket list (owner, lever, evidence, KPI).",
+            "- Route each ticket to the mapped owner and require evidence before process change.",
+            "- Keep actions reversible until next comparable week confirms pattern persistence.",
+        ]
+    )
+
     md_lines.extend([
         "",
         "## Falsification / when we're wrong",
@@ -631,6 +839,24 @@ def main() -> int:
     ])
 
     markdown = "\n".join(md_lines).strip() + "\n"
+
+    ticket_candidates = pattern_grouped[
+        [
+            "denial_bucket",
+            "pattern_text",
+            "action_category",
+            "owner",
+            "denied_amount_sum",
+            "denial_count",
+            "share_within_bucket",
+            "evidence_checklist",
+        ]
+    ].copy()
+    ticket_df = _build_ticket_pack(ticket_candidates).head(args.ticket_pack_size).reset_index(drop=True)
+    ticket_markdown = _ticket_pack_markdown(source_fqn, current_week, ticket_df)
+    ticket_visual_html = _build_ticket_pack_visual_html(ticket_df)
+    ticket_body_html = _markdown_to_html(ticket_markdown)
+    ticket_html_doc = _to_html_document("Denials RCI Ticket Pack v1", ticket_body_html, ticket_visual_html)
 
     patterns_overall = pattern_grouped.sort_values(["denied_amount_sum", "pattern_text"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
     visual_html = _build_visual_html(patterns_overall, summary_out, pattern_grouped)
@@ -644,22 +870,35 @@ def main() -> int:
 
     summary_path = out_dir / "denials_rci_summary_v1.csv"
     patterns_path = out_dir / "denials_rci_patterns_v1.csv"
+    tickets_path = out_dir / "denials_rci_tickets_v1.csv"
     md_path = docs_dir / "denials_rci_brief_v1.md"
     html_path = docs_dir / "denials_rci_brief_v1.html"
+    ticket_md_path = docs_dir / "denials_rci_ticket_pack_v1.md"
+    ticket_html_path = docs_dir / "denials_rci_ticket_pack_v1.html"
 
     summary_out.to_csv(summary_path, index=False)
     patterns_out.to_csv(patterns_path, index=False)
+    ticket_df.to_csv(tickets_path, index=False)
     md_path.write_text(markdown, encoding="utf-8")
     html_path.write_text(html_doc, encoding="utf-8")
+    ticket_md_path.write_text(ticket_markdown, encoding="utf-8")
+    ticket_html_path.write_text(ticket_html_doc, encoding="utf-8")
 
     if args.determinism_check:
         h1 = hashlib.sha256(html_path.read_bytes()).hexdigest()
         html_path.write_text(html_doc, encoding="utf-8")
         h2 = hashlib.sha256(html_path.read_bytes()).hexdigest()
+        t1 = hashlib.sha256(ticket_html_path.read_bytes()).hexdigest()
+        ticket_html_path.write_text(ticket_html_doc, encoding="utf-8")
+        t2 = hashlib.sha256(ticket_html_path.read_bytes()).hexdigest()
+        brief_match = h1 == h2
+        ticket_match = t1 == t2
         print(f"DETERMINISM_HTML_SHA_FIRST={h1}")
         print(f"DETERMINISM_HTML_SHA_SECOND={h2}")
-        print(f"MATCH={'TRUE' if h1 == h2 else 'FALSE'}")
-        if h1 != h2:
+        print(f"DETERMINISM_TICKET_HTML_SHA_FIRST={t1}")
+        print(f"DETERMINISM_TICKET_HTML_SHA_SECOND={t2}")
+        print(f"MATCH={'TRUE' if brief_match and ticket_match else 'FALSE'}")
+        if not (brief_match and ticket_match):
             raise RuntimeError("Determinism check failed: HTML hash mismatch.")
 
     print(f"RCI_SOURCE={source_fqn}")
@@ -668,11 +907,13 @@ def main() -> int:
     print(f"RCI_TOP_PATTERNS_WRITTEN={len(patterns_out)}")
     print(f"WROTE={summary_path}")
     print(f"WROTE={patterns_path}")
+    print(f"WROTE={tickets_path}")
     print(f"WROTE={md_path}")
     print(f"WROTE={html_path}")
+    print(f"WROTE={ticket_md_path}")
+    print(f"WROTE={ticket_html_path}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

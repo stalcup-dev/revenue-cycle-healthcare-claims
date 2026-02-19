@@ -22,52 +22,46 @@
   </style>
 </head>
 <body>
-  <div class='visual-card'><h2>Pareto (Top 5 patterns overall)</h2><div class='bar-row'><div class='bar-label'>noncovered | c | coverage verification / abn workflow</div><div class='bar-track'><div class='bar-fill' style='width:49.58%;'></div></div><div class='bar-pct'>49.6%</div></div><div class='bar-row'><div class='bar-label'>other denial | o | specialist review</div><div class='bar-track'><div class='bar-fill' style='width:32.30%;'></div></div><div class='bar-pct'>32.3%</div></div><div class='bar-row'><div class='bar-label'>allowed | c | none - claim allowed</div><div class='bar-track'><div class='bar-fill' style='width:6.74%;'></div></div><div class='bar-pct'>6.7%</div></div><div class='bar-row'><div class='bar-label'>allowed | o | none - claim allowed</div><div class='bar-track'><div class='bar-fill' style='width:5.48%;'></div></div><div class='bar-pct'>5.5%</div></div><div class='bar-row'><div class='bar-label'>noncovered | o | coverage verification / abn workflow</div><div class='bar-track'><div class='bar-fill' style='width:1.96%;'></div></div><div class='bar-pct'>2.0%</div></div><div class='bar-row'><div class='bar-label'>Other</div><div class='bar-track'><div class='bar-fill' style='width:3.92%; background:#9ca3af;'></div></div><div class='bar-pct'>3.9%</div></div></div><div class='visual-card'><h2>Bucket concentration</h2><div class='stacked-bar'><span style="width:63.94%;background:#1f77b4;"></span><span style="width:34.45%;background:#ff7f0e;"></span><span style="width:1.61%;background:#2ca02c;"></span><span style="width:0.00%;background:#9467bd;"></span></div><div class='stacked-legend'><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#1f77b4;margin-right:4px;"></span>AUTH_ELIG (63.9%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#ff7f0e;margin-right:4px;"></span>OTHER_PROXY (34.4%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#2ca02c;margin-right:4px;"></span>CODING_DOC (1.6%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#9467bd;margin-right:4px;"></span>DUPLICATE (0.0%)</span></div><p><em>directional signal from proxies</em></p></div><div class='visual-card mix-grid'><h2>Pattern mix (bucket × action category)</h2><table><thead><tr><th>denial_bucket</th><th>ELIGIBILITY</th><th>OTHER_ACTION</th><th>CONTRACTUAL</th></tr></thead><tbody><tr><td>AUTH_ELIG</td><td class='heat-cell' style='background: rgba(31,119,180,0.800);'>100.0%</td><td class='heat-cell' style='background: rgba(31,119,180,0.100);'>0.0%</td><td class='heat-cell' style='background: rgba(31,119,180,0.100);'>0.0%</td></tr><tr><td>OTHER_PROXY</td><td class='heat-cell' style='background: rgba(31,119,180,0.100);'>0.0%</td><td class='heat-cell' style='background: rgba(31,119,180,0.613);'>73.3%</td><td class='heat-cell' style='background: rgba(31,119,180,0.287);'>26.7%</td></tr></tbody></table><p><em>not a causal claim</em></p></div><div class='visual-card'><h2>Owner workload (directional)</h2><p><strong>Metric: denial_count (claims) - directional estimate</strong></p><div class='bar-row'><div class='bar-label'>Contracting/RCM lead</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#2563eb;'></div></div><div class='bar-pct'>6715</div></div><div class='bar-row'><div class='bar-label'>RCM analyst review</div><div class='bar-track'><div class='bar-fill' style='width:10.14%; background:#2563eb;'></div></div><div class='bar-pct'>681</div></div><div class='bar-row'><div class='bar-label'>Eligibility/Auth team</div><div class='bar-track'><div class='bar-fill' style='width:5.54%; background:#2563eb;'></div></div><div class='bar-pct'>372</div></div><div class='bar-row'><div class='bar-label'>Coding/CDI</div><div class='bar-track'><div class='bar-fill' style='width:1.24%; background:#2563eb;'></div></div><div class='bar-pct'>83</div></div><div class='bar-row'><div class='bar-label'>Billing</div><div class='bar-track'><div class='bar-fill' style='width:0.91%; background:#2563eb;'></div></div><div class='bar-pct'>61</div></div><p><em>directional workload estimate</em></p></div>
+  <div class='visual-card'><h2>Pareto (Top 5 patterns overall)</h2><div class='bar-row'><div class='bar-label'>noncovered | c | coverage verification / abn workflow</div><div class='bar-track'><div class='bar-fill' style='width:47.29%;'></div></div><div class='bar-pct'>47.3%</div></div><div class='bar-row'><div class='bar-label'>other denial | o | specialist review</div><div class='bar-track'><div class='bar-fill' style='width:29.53%;'></div></div><div class='bar-pct'>29.5%</div></div><div class='bar-row'><div class='bar-label'>allowed | c | none - claim allowed</div><div class='bar-track'><div class='bar-fill' style='width:9.53%;'></div></div><div class='bar-pct'>9.5%</div></div><div class='bar-row'><div class='bar-label'>allowed | o | none - claim allowed</div><div class='bar-track'><div class='bar-fill' style='width:3.74%;'></div></div><div class='bar-pct'>3.7%</div></div><div class='bar-row'><div class='bar-label'>noncovered | n | coverage verification / abn workflow</div><div class='bar-track'><div class='bar-fill' style='width:3.36%;'></div></div><div class='bar-pct'>3.4%</div></div><div class='bar-row'><div class='bar-label'>Other</div><div class='bar-track'><div class='bar-fill' style='width:6.54%; background:#9ca3af;'></div></div><div class='bar-pct'>6.5%</div></div></div><div class='visual-card'><h2>Bucket concentration</h2><div class='stacked-bar'><span style="width:65.18%;background:#1f77b4;"></span><span style="width:34.82%;background:#ff7f0e;"></span><span style="width:0.00%;background:#2ca02c;"></span><span style="width:0.00%;background:#9467bd;"></span></div><div class='stacked-legend'><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#1f77b4;margin-right:4px;"></span>AUTH_ELIG (65.2%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#ff7f0e;margin-right:4px;"></span>OTHER_PROXY (34.8%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#2ca02c;margin-right:4px;"></span>CODING_DOC (0.0%)</span><span style="margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;background:#9467bd;margin-right:4px;"></span>DUPLICATE (0.0%)</span></div><p><em>directional signal from proxies</em></p></div><div class='visual-card mix-grid'><h2>Pattern mix (bucket × action category)</h2><table><thead><tr><th>denial_bucket</th><th>ELIGIBILITY</th><th>OTHER_ACTION</th><th>CONTRACTUAL</th></tr></thead><tbody><tr><td>AUTH_ELIG</td><td class='heat-cell' style='background: rgba(31,119,180,0.800);'>100.0%</td><td class='heat-cell' style='background: rgba(31,119,180,0.100);'>0.0%</td><td class='heat-cell' style='background: rgba(31,119,180,0.100);'>0.0%</td></tr><tr><td>OTHER_PROXY</td><td class='heat-cell' style='background: rgba(31,119,180,0.100);'>0.0%</td><td class='heat-cell' style='background: rgba(31,119,180,0.589);'>69.8%</td><td class='heat-cell' style='background: rgba(31,119,180,0.311);'>30.2%</td></tr></tbody></table><p><em>not a causal claim</em></p></div><div class='visual-card'><h2>Owner workload (directional)</h2><p><strong>Metric: denial_count (claims) - directional estimate</strong></p><div class='bar-row'><div class='bar-label'>Contracting/RCM lead</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#2563eb;'></div></div><div class='bar-pct'>925</div></div><div class='bar-row'><div class='bar-label'>RCM analyst review</div><div class='bar-track'><div class='bar-fill' style='width:10.38%; background:#2563eb;'></div></div><div class='bar-pct'>96</div></div><div class='bar-row'><div class='bar-label'>Eligibility/Auth team</div><div class='bar-track'><div class='bar-fill' style='width:5.73%; background:#2563eb;'></div></div><div class='bar-pct'>53</div></div><div class='bar-row'><div class='bar-label'>Coding/CDI</div><div class='bar-track'><div class='bar-fill' style='width:1.08%; background:#2563eb;'></div></div><div class='bar-pct'>10</div></div><div class='bar-row'><div class='bar-label'>Billing</div><div class='bar-track'><div class='bar-fill' style='width:0.54%; background:#2563eb;'></div></div><div class='bar-pct'>5</div></div><p><em>directional workload estimate</em></p></div><div class='visual-card'><h2>What to do Monday</h2><p>Use the operational ticket pack: <a href='denials_rci_ticket_pack_v1.html'>docs/denials_rci_ticket_pack_v1.html</a>.</p><p><em>Route top patterns to owners with evidence-first execution.</em></p></div>
   <h1>Denials Root Cause Intelligence Brief v1</h1>
 <h2>Impact in 90 Seconds (RCI)</h2>
 <ul>
-<li>Week key: 2011-02-14</li>
-<li>Total denied proxy exposure: $39,750</li>
+<li>Week key: 2011-02-21</li>
+<li>Total denied proxy exposure: $5,350</li>
 <li>Top buckets: AUTH_ELIG, OTHER_PROXY</li>
-<li>Top-2 concentration: 98.4% of weighted priority</li>
+<li>Top-2 concentration: 100.0% of weighted priority</li>
 <li>Use this for directional root-cause triage and evidence routing, not causal savings claims.</li>
 </ul>
 <h2>Top buckets + what&#x27;s driving them</h2>
 <ul>
-<li>AUTH_ELIG: denied $20,670, priority $20,670, rank 1.</li>
-<li>OTHER_PROXY: denied $18,560, priority $11,136, rank 2.</li>
-<li>CODING_DOC: denied $520, priority $520, rank 3.</li>
+<li>AUTH_ELIG: denied $2,830, priority $2,830, rank 1.</li>
+<li>OTHER_PROXY: denied $2,520, priority $1,512, rank 2.</li>
+<li>CODING_DOC: denied $0, priority $0, rank 3.</li>
 <li>DUPLICATE: denied $0, priority $0, rank 4.</li>
 </ul>
 <h2>Top Patterns (within buckets)</h2>
 <table><thead><tr><th>denial_bucket</th><th>pattern_text</th><th>action_category</th><th>owner</th><th>denied_amount_sum</th><th>denial_count</th><th>share_within_bucket</th></tr></thead><tbody>
-<tr><td>AUTH_ELIG</td><td>noncovered  /  c  /  coverage verification / abn workflow</td><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$19,710</td><td>357</td><td>95.4%</td></tr>
-<tr><td>AUTH_ELIG</td><td>noncovered  /  o  /  coverage verification / abn workflow</td><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$780</td><td>14</td><td>3.8%</td></tr>
-<tr><td>AUTH_ELIG</td><td>noncovered  /  n  /  coverage verification / abn workflow</td><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$180</td><td>1</td><td>0.9%</td></tr>
-<tr><td>OTHER_PROXY</td><td>other denial  /  o  /  specialist review</td><td>OTHER_ACTION</td><td>RCM analyst review</td><td>$12,840</td><td>537</td><td>69.2%</td></tr>
-<tr><td>OTHER_PROXY</td><td>allowed  /  c  /  none - claim allowed</td><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$2,680</td><td>101</td><td>14.4%</td></tr>
-<tr><td>OTHER_PROXY</td><td>allowed  /  o  /  none - claim allowed</td><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$2,180</td><td>268</td><td>11.7%</td></tr>
-<tr><td>OTHER_PROXY</td><td>other denial  /  c  /  specialist review</td><td>OTHER_ACTION</td><td>RCM analyst review</td><td>$600</td><td>11</td><td>3.2%</td></tr>
-<tr><td>OTHER_PROXY</td><td>allowed  /  n  /  none - claim allowed</td><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$70</td><td>46</td><td>0.4%</td></tr>
-<tr><td>CODING_DOC</td><td>medically unnecessary  /  n  /  documentation improvement</td><td>MEDICAL_RECORDS</td><td>Coding/CDI</td><td>$430</td><td>78</td><td>82.7%</td></tr>
-<tr><td>CODING_DOC</td><td>bundled / no pay  /  z  /  modifier / bundling guardrails</td><td>CODING_MODIFIER</td><td>Coding/CDI</td><td>$90</td><td>2</td><td>17.3%</td></tr>
-<tr><td>CODING_DOC</td><td>medically unnecessary  /  o  /  documentation improvement</td><td>MEDICAL_RECORDS</td><td>Coding/CDI</td><td>$0</td><td>3</td><td>0.0%</td></tr>
-<tr><td>DUPLICATE</td><td>administrative  /    /  duplicate - exclude</td><td>DUPLICATE</td><td>Billing</td><td>$0</td><td>58</td><td>0.0%</td></tr>
-<tr><td>DUPLICATE</td><td>administrative  /  c  /  duplicate - exclude</td><td>DUPLICATE</td><td>Billing</td><td>$0</td><td>1</td><td>0.0%</td></tr>
-<tr><td>DUPLICATE</td><td>administrative  /  o  /  duplicate - exclude</td><td>DUPLICATE</td><td>Billing</td><td>$0</td><td>2</td><td>0.0%</td></tr>
+<tr><td>AUTH_ELIG</td><td>noncovered  /  c  /  coverage verification / abn workflow</td><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$2,530</td><td>50</td><td>89.4%</td></tr>
+<tr><td>AUTH_ELIG</td><td>noncovered  /  n  /  coverage verification / abn workflow</td><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$180</td><td>1</td><td>6.4%</td></tr>
+<tr><td>AUTH_ELIG</td><td>noncovered  /  o  /  coverage verification / abn workflow</td><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$120</td><td>2</td><td>4.2%</td></tr>
+<tr><td>OTHER_PROXY</td><td>other denial  /  o  /  specialist review</td><td>OTHER_ACTION</td><td>RCM analyst review</td><td>$1,580</td><td>72</td><td>62.7%</td></tr>
+<tr><td>OTHER_PROXY</td><td>allowed  /  c  /  none - claim allowed</td><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$510</td><td>15</td><td>20.2%</td></tr>
+<tr><td>OTHER_PROXY</td><td>allowed  /  o  /  none - claim allowed</td><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$200</td><td>31</td><td>7.9%</td></tr>
+<tr><td>OTHER_PROXY</td><td>other denial  /  c  /  specialist review</td><td>OTHER_ACTION</td><td>RCM analyst review</td><td>$180</td><td>4</td><td>7.1%</td></tr>
+<tr><td>OTHER_PROXY</td><td>allowed  /  n  /  none - claim allowed</td><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$50</td><td>5</td><td>2.0%</td></tr>
+<tr><td>CODING_DOC</td><td>medically unnecessary  /  n  /  documentation improvement</td><td>MEDICAL_RECORDS</td><td>Coding/CDI</td><td>$0</td><td>10</td><td>0.0%</td></tr>
+<tr><td>DUPLICATE</td><td>administrative  /    /  duplicate - exclude</td><td>DUPLICATE</td><td>Billing</td><td>$0</td><td>5</td><td>0.0%</td></tr>
 </tbody></table>
 <h2>Action categories + owners</h2>
 <table><thead><tr><th>action_category</th><th>owner</th><th>denied_amount_sum</th><th>pattern_count</th></tr></thead><tbody>
-<tr><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$20,670</td><td>3</td></tr>
-<tr><td>OTHER_ACTION</td><td>RCM analyst review</td><td>$13,440</td><td>2</td></tr>
-<tr><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$4,930</td><td>3</td></tr>
-<tr><td>MEDICAL_RECORDS</td><td>Coding/CDI</td><td>$430</td><td>2</td></tr>
-<tr><td>CODING_MODIFIER</td><td>Coding/CDI</td><td>$90</td><td>1</td></tr>
-<tr><td>DUPLICATE</td><td>Billing</td><td>$0</td><td>3</td></tr>
+<tr><td>ELIGIBILITY</td><td>Eligibility/Auth team</td><td>$2,830</td><td>3</td></tr>
+<tr><td>OTHER_ACTION</td><td>RCM analyst review</td><td>$1,760</td><td>2</td></tr>
+<tr><td>CONTRACTUAL</td><td>Contracting/RCM lead</td><td>$760</td><td>3</td></tr>
+<tr><td>DUPLICATE</td><td>Billing</td><td>$0</td><td>1</td></tr>
+<tr><td>MEDICAL_RECORDS</td><td>Coding/CDI</td><td>$0</td><td>1</td></tr>
 </tbody></table>
 <h2>Evidence checklist</h2>
 <table><thead><tr><th>action_category</th><th>evidence_checklist</th></tr></thead><tbody>
-<tr><td>CODING_MODIFIER</td><td>coded claim detail; coding notes</td></tr>
 <tr><td>CONTRACTUAL</td><td>contract clause excerpt; allowed schedule</td></tr>
 <tr><td>DUPLICATE</td><td>claim history; duplicate match proof</td></tr>
 <tr><td>ELIGIBILITY</td><td>eligibility response; coverage verification timestamp</td></tr>
@@ -79,6 +73,12 @@
 <li>Real-time eligibility refresh before claim finalization.</li>
 <li>Expand denial reason standardization dictionary.</li>
 <li>Contract reference table linked to denial routing rules.</li>
+</ul>
+<h2>What to do Monday</h2>
+<ul>
+<li>Open `docs/denials_rci_ticket_pack_v1.html` for the Top 10 operational ticket list (owner, lever, evidence, KPI).</li>
+<li>Route each ticket to the mapped owner and require evidence before process change.</li>
+<li>Keep actions reversible until next comparable week confirms pattern persistence.</li>
 </ul>
 <h2>Falsification / when we&#x27;re wrong</h2>
 <ul>
