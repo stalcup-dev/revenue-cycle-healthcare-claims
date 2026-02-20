@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Denials RCI Ticket Pack v1</title>
+  <style>
+    body { max-width: 980px; margin: 24px auto; padding: 0 16px 40px; font-family: Segoe UI, Arial, sans-serif; line-height: 1.5; color:#111; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    th, td { border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f6f8fa; }
+    .visual-card { border: 1px solid #d0d7de; border-radius: 8px; padding: 12px; margin: 8px 0 18px; background: #fafcff; }
+    .bar-row { display: grid; grid-template-columns: 320px 1fr 70px; gap: 8px; align-items: center; margin: 6px 0; }
+    .bar-label { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { width: 100%; height: 14px; border: 1px solid #d0d7de; border-radius: 3px; overflow: hidden; background: #f6f8fa; }
+    .bar-fill { height: 100%; background: #1f77b4; }
+    .bar-pct { font-size: 12px; text-align: right; color: #374151; }
+    .stacked-bar { display: flex; width: 100%; height: 18px; border: 1px solid #d0d7de; border-radius: 4px; overflow: hidden; margin: 8px 0 8px; }
+    .stacked-legend { font-size: 12px; color: #374151; margin-bottom: 12px; }
+    .mix-grid table { margin-top: 8px; }
+    .heat-cell { font-weight: 600; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class='visual-card'><h2>Owner workload (directional)</h2><p><strong>Metric: denial_count (claims) for Top 10 ticket patterns.</strong></p><div class='bar-row'><div class='bar-label'>Contracting/RCM lead</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#1d4ed8;'></div></div><div class='bar-pct'>925 claims</div></div><div class='bar-row'><div class='bar-label'>RCM analyst review</div><div class='bar-track'><div class='bar-fill' style='width:8.22%; background:#1d4ed8;'></div></div><div class='bar-pct'>76 claims</div></div><div class='bar-row'><div class='bar-label'>Eligibility/Auth team</div><div class='bar-track'><div class='bar-fill' style='width:5.73%; background:#1d4ed8;'></div></div><div class='bar-pct'>53 claims</div></div><div class='bar-row'><div class='bar-label'>Coding/CDI</div><div class='bar-track'><div class='bar-fill' style='width:1.08%; background:#1d4ed8;'></div></div><div class='bar-pct'>10 claims</div></div></div><div class='visual-card'><h2>Top pattern impact share</h2><div class='bar-row'><div class='bar-label'>#1 AUTH_ELIG</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#0ea5e9;'></div></div><div class='bar-pct'>47.3%</div></div><div class='bar-row'><div class='bar-label'>#2 OTHER_PROXY</div><div class='bar-track'><div class='bar-fill' style='width:62.45%; background:#0ea5e9;'></div></div><div class='bar-pct'>29.5%</div></div><div class='bar-row'><div class='bar-label'>#3 OTHER_PROXY</div><div class='bar-track'><div class='bar-fill' style='width:20.16%; background:#0ea5e9;'></div></div><div class='bar-pct'>9.5%</div></div><div class='bar-row'><div class='bar-label'>#4 OTHER_PROXY</div><div class='bar-track'><div class='bar-fill' style='width:7.91%; background:#0ea5e9;'></div></div><div class='bar-pct'>3.7%</div></div><div class='bar-row'><div class='bar-label'>#5 OTHER_PROXY</div><div class='bar-track'><div class='bar-fill' style='width:7.11%; background:#0ea5e9;'></div></div><div class='bar-pct'>3.4%</div></div><div class='bar-row'><div class='bar-label'>#6 AUTH_ELIG</div><div class='bar-track'><div class='bar-fill' style='width:7.11%; background:#0ea5e9;'></div></div><div class='bar-pct'>3.4%</div></div><div class='bar-row'><div class='bar-label'>#7 AUTH_ELIG</div><div class='bar-track'><div class='bar-fill' style='width:4.74%; background:#0ea5e9;'></div></div><div class='bar-pct'>2.2%</div></div><div class='bar-row'><div class='bar-label'>#8 OTHER_PROXY</div><div class='bar-track'><div class='bar-fill' style='width:1.98%; background:#0ea5e9;'></div></div><div class='bar-pct'>0.9%</div></div><div class='bar-row'><div class='bar-label'>#9 OTHER_PROXY</div><div class='bar-track'><div class='bar-fill' style='width:0.00%; background:#0ea5e9;'></div></div><div class='bar-pct'>0.0%</div></div><div class='bar-row'><div class='bar-label'>#10 CODING_DOC</div><div class='bar-track'><div class='bar-fill' style='width:0.00%; background:#0ea5e9;'></div></div><div class='bar-pct'>0.0%</div></div><p><em>share of denied_amount_proxy across Top 10 ticket patterns</em></p></div><div class='visual-card'><h2>Evidence readiness (checklist completeness proxy)</h2><div class='bar-row'><div class='bar-label'>#1 Eligibility/Auth team</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#2 RCM analyst review</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#3 Contracting/RCM lead</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#4 Contracting/RCM lead</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#5 RCM analyst review</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#6 Eligibility/Auth team</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#7 Eligibility/Auth team</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#8 Contracting/RCM lead</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#9 Contracting/RCM lead</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><div class='bar-row'><div class='bar-label'>#10 Coding/CDI</div><div class='bar-track'><div class='bar-fill' style='width:100.00%; background:#16a34a;'></div></div><div class='bar-pct'>100%</div></div><p><em>proxy from checklist item count; not an adjudication quality measure</em></p></div>
+  <h1>Denials RCI Ticket Pack v1</h1>
+<p>Source: `rcm-flagship.rcm.mart_workqueue_claims` (dbt mart only). Week key: `2011-02-21`.</p>
+<h2>What to do Monday</h2>
+<ul>
+<li>Open the Top 10 pattern tickets below and assign each to the listed owner the same day.</li>
+<li>Require listed evidence before changing workflow or escalation path.</li>
+<li>Track the listed KPI weekly; if KPI does not improve, reclassify the pattern and lever.</li>
+</ul>
+<h2>Top 10 patterns -&gt; owner -&gt; lever -&gt; evidence -&gt; KPI</h2>
+<table><thead><tr><th>rank</th><th>denial_bucket</th><th>pattern_text</th><th>owner</th><th>operational_lever</th><th>evidence_checklist</th><th>KPI</th><th>impact_share</th></tr></thead><tbody>
+<tr><td>1</td><td>AUTH_ELIG</td><td>noncovered  /  c  /  coverage verification / abn workflow</td><td>Eligibility/Auth team</td><td>Run same-day eligibility reverification before submit.</td><td>eligibility response; coverage verification timestamp</td><td>Eligibility pass rate before submission</td><td>47.3%</td></tr>
+<tr><td>2</td><td>OTHER_PROXY</td><td>other denial  /  o  /  specialist review</td><td>RCM analyst review</td><td>Manual triage and classify to reduce OTHER_ACTION share.</td><td>manual triage notes; payer response detail</td><td>Unclassified denial share</td><td>29.5%</td></tr>
+<tr><td>3</td><td>OTHER_PROXY</td><td>allowed  /  c  /  none - claim allowed</td><td>Contracting/RCM lead</td><td>Route contractual disputes to contract variance review.</td><td>contract clause excerpt; allowed schedule</td><td>Contract variance resolution rate</td><td>9.5%</td></tr>
+<tr><td>4</td><td>OTHER_PROXY</td><td>allowed  /  o  /  none - claim allowed</td><td>Contracting/RCM lead</td><td>Route contractual disputes to contract variance review.</td><td>contract clause excerpt; allowed schedule</td><td>Contract variance resolution rate</td><td>3.7%</td></tr>
+<tr><td>5</td><td>OTHER_PROXY</td><td>other denial  /  c  /  specialist review</td><td>RCM analyst review</td><td>Manual triage and classify to reduce OTHER_ACTION share.</td><td>manual triage notes; payer response detail</td><td>Unclassified denial share</td><td>3.4%</td></tr>
+<tr><td>6</td><td>AUTH_ELIG</td><td>noncovered  /  n  /  coverage verification / abn workflow</td><td>Eligibility/Auth team</td><td>Run same-day eligibility reverification before submit.</td><td>eligibility response; coverage verification timestamp</td><td>Eligibility pass rate before submission</td><td>3.4%</td></tr>
+<tr><td>7</td><td>AUTH_ELIG</td><td>noncovered  /  o  /  coverage verification / abn workflow</td><td>Eligibility/Auth team</td><td>Run same-day eligibility reverification before submit.</td><td>eligibility response; coverage verification timestamp</td><td>Eligibility pass rate before submission</td><td>2.2%</td></tr>
+<tr><td>8</td><td>OTHER_PROXY</td><td>allowed  /  n  /  none - claim allowed</td><td>Contracting/RCM lead</td><td>Route contractual disputes to contract variance review.</td><td>contract clause excerpt; allowed schedule</td><td>Contract variance resolution rate</td><td>0.9%</td></tr>
+<tr><td>9</td><td>OTHER_PROXY</td><td>allowed  /    /  none - claim allowed</td><td>Contracting/RCM lead</td><td>Route contractual disputes to contract variance review.</td><td>contract clause excerpt; allowed schedule</td><td>Contract variance resolution rate</td><td>0.0%</td></tr>
+<tr><td>10</td><td>CODING_DOC</td><td>medically unnecessary  /  n  /  documentation improvement</td><td>Coding/CDI</td><td>Attach required clinical packet at first submission.</td><td>clinical documentation excerpt; submission packet</td><td>Documentation completeness on first pass</td><td>0.0%</td></tr>
+</tbody></table>
+<h2>Owner workload (directional)</h2>
+<table><thead><tr><th>owner</th><th>ticket_count</th><th>denied_amount_sum</th></tr></thead><tbody>
+<tr><td>Eligibility/Auth team</td><td>3</td><td>$2,830</td></tr>
+<tr><td>RCM analyst review</td><td>2</td><td>$1,760</td></tr>
+<tr><td>Contracting/RCM lead</td><td>4</td><td>$760</td></tr>
+<tr><td>Coding/CDI</td><td>1</td><td>$0</td></tr>
+</tbody></table>
+<h2>Guardrails</h2>
+<ul>
+<li>Directional prioritization only; denied dollar values are proxies.</li>
+<li>No payer identity claims; `payer_dim_status = MISSING_IN_MART`.</li>
+<li>No date-dimension changes in this ticket pack slice.</li>
+</ul>
+</body>
+</html>
