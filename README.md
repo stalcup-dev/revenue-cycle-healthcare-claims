@@ -14,10 +14,11 @@
 ## Start Here (Hiring Manager)
 No Tableau required.
 
+- [Project Status and Next Steps](docs/PROJECT_STATUS_AND_NEXT_STEPS.md)
 - [Executive System Overview](docs/EXECUTIVE_SYSTEM_OVERVIEW.md)
 - [Denials Triage Brief (HTML)](docs/denials_triage_brief_v1.html)
 - [Denials Prevention Brief (HTML)](docs/denials_prevention_brief_v1.html)
-- `docs/denials_recovery_brief_v1.html` (public path reserved; artifact not published on `main` yet)
+- [Denials Recovery Brief (HTML)](docs/denials_recovery_brief_v1.html)
 - [Denials RCI Brief (HTML)](docs/denials_rci_brief_v1.html)
 - [Proof Pack Index](docs/PROOF_PACK_INDEX.md)
 
