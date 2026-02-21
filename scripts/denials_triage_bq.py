@@ -605,7 +605,7 @@ def _teaching_markdown(
             "- Summary CSV: `exports/denials_triage_summary_v1.csv`",
             "- Workqueue CSV: `exports/denials_workqueue_v1.csv`",
             "- Public brief: `docs/denials_triage_brief_v1.md` + `docs/denials_triage_brief_v1.html`",
-            "- Private teaching memo: `exports/denials_triage_brief_v1_teaching.html`",
+            "- Private defense simulator: `exports/private/denials_triage_defense_simulator.html`",
             "",
             "## How to reduce OTHER_PROXY",
             "- Add payer_id/payer_name to marts to reduce unclassified routing.",
@@ -1043,6 +1043,8 @@ def main() -> int:
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
+    private_dir = out_dir / "private"
+    private_dir.mkdir(parents=True, exist_ok=True)
     docs_dir = Path("docs")
     docs_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1115,7 +1117,7 @@ def main() -> int:
     stability_path = out_dir / "denials_stability_v1.csv"
     brief_path = docs_dir / "denials_triage_brief_v1.md"
     brief_html_path = docs_dir / "denials_triage_brief_v1.html"
-    teaching_html_path = out_dir / "denials_triage_brief_v1_teaching.html"
+    teaching_html_path = private_dir / "denials_triage_defense_simulator.html"
 
     summary_df.to_csv(summary_path, index=False)
     workqueue_df.to_csv(workqueue_path, index=False)
@@ -1185,6 +1187,8 @@ def main() -> int:
         print(f"WROTE={brief_html_path}")
     if args.write_teaching_html:
         print(f"WROTE={teaching_html_path}")
+    print(f"PRIVATE_ARTIFACT_PATH={(Path(args.out) / 'private' / 'denials_triage_defense_simulator.html').as_posix()}")
+    print("PRIVATE_ARTIFACT_TRACKED=FALSE")
     return 0
 
 
