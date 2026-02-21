@@ -29,8 +29,8 @@ CANONICAL_ALLOWLIST = [
 ]
 
 README_REQUIRED_SECTIONS = {
-    "Start Here (Hiring Manager, 2 minutes)",
-    "Operator Deep Dive (Queue Volume Shift)",
+    "Start Here (Hiring Manager)",
+    "Operator Deep Dive",
 }
 
 FORBIDDEN_PATTERNS = [
@@ -57,6 +57,10 @@ PLAIN_PATH_PATTERN = re.compile(
     r"\b(?:docs|notebooks|scripts|portfolio)/[A-Za-z0-9_./\-]+\.(?:md|png|ipynb|pdf|ps1|sql)\b"
 )
 CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
+FORBIDDEN_PUBLIC_KEYWORDS = re.compile(
+    r"(interview|walkthrough|teaching|simulator|defense|private/)",
+    re.IGNORECASE,
+)
 
 
 def rel(path: Path) -> str:
@@ -186,6 +190,48 @@ def check_reason_duplication() -> list[tuple[str, int]]:
     return findings
 
 
+def get_tracked_paths() -> list[str]:
+    try:
+        proc = subprocess.run(
+            ["git", "ls-files"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return []
+    if proc.returncode != 0:
+        return []
+    return [line.strip().replace("\\", "/") for line in proc.stdout.splitlines() if line.strip()]
+
+
+def check_public_keyword_leaks(scan_paths: list[Path]) -> list[tuple[str, int, str]]:
+    hits: list[tuple[str, int, str]] = []
+    for path in scan_paths:
+        if not path.exists() or path.suffix.lower() not in {".md", ".html", ".txt"}:
+            continue
+        text = load_text(path)
+        for match in FORBIDDEN_PUBLIC_KEYWORDS.finditer(text):
+            line = text.count("\n", 0, match.start()) + 1
+            hits.append((rel(path), line, match.group(0)))
+    return hits
+
+
+def check_tracked_private_paths(tracked_paths: list[str]) -> list[str]:
+    return [path for path in tracked_paths if "private/" in path.lower()]
+
+
+def check_tracked_docs_teaching_html(tracked_paths: list[str]) -> list[str]:
+    return [
+        path
+        for path in tracked_paths
+        if path.lower().startswith("docs/")
+        and path.lower().endswith(".html")
+        and "_teaching" in path.lower()
+    ]
+
+
 def check_forbidden_private_artifacts() -> list[str]:
     forbidden = sorted((REPO_ROOT / "docs").rglob("*_teaching*.html"))
     return [rel(path) for path in forbidden]
@@ -241,8 +287,20 @@ def main() -> int:
     readme_md_targets = [p for p in readme_required_targets if p.suffix.lower() == ".md"]
     canonical_files = build_canonical_docs(readme_md_targets)
     missing_readme_targets = check_missing_readme_targets(readme_required_targets)
+    tracked_paths = get_tracked_paths()
+
+    public_scan_paths = sorted(
+        {
+            README_PATH.resolve(),
+            *canonical_files,
+            *[path.resolve() for path in readme_required_targets if path.exists()],
+        }
+    )
 
     canonical = evaluate_scope(canonical_files, missing_readme_targets, include_reason_dup=False)
+    public_keyword_leaks = check_public_keyword_leaks(public_scan_paths)
+    tracked_private_paths = check_tracked_private_paths(tracked_paths)
+    tracked_docs_teaching = check_tracked_docs_teaching_html(tracked_paths)
     forbidden_private_artifacts = check_forbidden_private_artifacts()
     staged_exports = check_staged_exports()
 
@@ -251,6 +309,9 @@ def main() -> int:
     print(f"forbidden_hits={len(canonical['forbidden'])}")
     print(f"plain_path_refs={len(canonical['plain_refs'])}")
     print(f"reason_dup_hits={len(canonical['reason_dups'])}")
+    print(f"forbidden_public_keyword_hits={len(public_keyword_leaks)}")
+    print(f"tracked_private_path_hits={len(tracked_private_paths)}")
+    print(f"tracked_docs_teaching_hits={len(tracked_docs_teaching)}")
     print(f"forbidden_private_artifact_hits={len(forbidden_private_artifacts)}")
     print(f"staged_export_hits={len(staged_exports)}")
 
@@ -269,6 +330,18 @@ def main() -> int:
         [f"{f} -> Reason: appears {count} times (max 1)" for f, count in canonical["reason_dups"]],
     )
     print_section(
+        "FORBIDDEN_PUBLIC_KEYWORD_FOUND",
+        [f"{f}:{line} -> {text}" for f, line, text in public_keyword_leaks],
+    )
+    print_section(
+        "TRACKED_PRIVATE_PATH_FOUND",
+        tracked_private_paths,
+    )
+    print_section(
+        "TRACKED_DOCS_TEACHING_HTML_FOUND",
+        tracked_docs_teaching,
+    )
+    print_section(
         "FORBIDDEN_PRIVATE_ARTIFACT_FOUND",
         forbidden_private_artifacts,
     )
@@ -284,6 +357,9 @@ def main() -> int:
             canonical["forbidden"],
             canonical["plain_refs"],
             canonical["reason_dups"],
+            public_keyword_leaks,
+            tracked_private_paths,
+            tracked_docs_teaching,
             forbidden_private_artifacts,
             staged_exports,
         ]
