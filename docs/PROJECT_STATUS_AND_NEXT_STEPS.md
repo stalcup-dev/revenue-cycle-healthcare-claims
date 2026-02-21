@@ -5,18 +5,18 @@
 - It ships executive-ready briefs plus operator artifacts that can run without Tableau.
 
 ## What's shipped (Denials: Triage / Prevention / Recovery / RCI)
-- **Triage:** `docs/denials_triage_brief_v1.html` for weekly directional prioritization and workqueue routing.
-- **Prevention:** `docs/denials_prevention_brief_v1.html` for directional prevented-exposure focus.
-- **Recovery:** `docs/denials_recovery_brief_v1.html` for directional recovery opportunity execution.
-- **RCI:** `docs/denials_rci_brief_v1.html` plus `docs/denials_rci_ticket_pack_v1.html` for pattern-to-owner execution.
+- **Triage:** [Denials Triage Brief](denials_triage_brief_v1.html) for weekly directional prioritization and workqueue routing.
+- **Prevention:** [Denials Prevention Brief](denials_prevention_brief_v1.html) for directional prevented-exposure focus.
+- **Recovery:** [Denials Recovery Brief](denials_recovery_brief_v1.html) for directional recovery opportunity execution.
+- **RCI:** [Denials RCI Brief](denials_rci_brief_v1.html) plus [RCI Ticket Pack](denials_rci_ticket_pack_v1.html) for pattern-to-owner execution.
 
 ## Start here (public links)
-- `docs/EXECUTIVE_SYSTEM_OVERVIEW.md`
-- `docs/PROOF_PACK_INDEX.md`
-- `docs/denials_triage_brief_v1.html`
-- `docs/denials_prevention_brief_v1.html`
-- `docs/denials_recovery_brief_v1.html`
-- `docs/denials_rci_brief_v1.html`
+- [Executive System Overview](EXECUTIVE_SYSTEM_OVERVIEW.md)
+- [Proof Pack Index](PROOF_PACK_INDEX.md)
+- [Denials Triage Brief](denials_triage_brief_v1.html)
+- [Denials Prevention Brief](denials_prevention_brief_v1.html)
+- [Denials Recovery Brief](denials_recovery_brief_v1.html)
+- [Denials RCI Brief](denials_rci_brief_v1.html)
 
 ## Guardrails (mart-only, deterministic, proxies, non-causal)
 - Source contract is dbt-built BigQuery marts only.
