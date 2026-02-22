@@ -294,7 +294,7 @@ Expected payer-allowed assigned to denied zero-paid lines using HCPCS-level medi
 ### Denials Triage Pack (BigQuery/dbt + Python)
 - **Value:** Produces a weekly denials triage brief with stability-aware prioritization and operator-ready routing.
 - **Tech:** BigQuery + dbt mart layer, Python generator (`scripts/denials_triage_bq.py`), markdown/html outputs.
-- **Primary Artifact:** [Denials Triage Brief (HTML)](../docs/denials_triage_brief_v1.html)
+- **Primary Artifact:** [Denials Triage Brief (PDF)](../docs/denials_triage_brief_v1.pdf)
 - **What is defensible:** Deterministic bucket mapping, explicit proxy disclaimers, week-to-week stability checks.
 - **Limits:** No payer identity in current mart layer; service date and denied amount are proxy-derived.
 

@@ -16,16 +16,16 @@ No Tableau required.
 
 - [Project Status and Next Steps](docs/PROJECT_STATUS_AND_NEXT_STEPS.md)
 - [Executive System Overview](docs/EXECUTIVE_SYSTEM_OVERVIEW.md)
-- [Denials Triage Brief (HTML)](docs/denials_triage_brief_v1.html)
-- [Denials Prevention Brief (HTML)](docs/denials_prevention_brief_v1.html)
-- [Denials Recovery Brief (HTML)](docs/denials_recovery_brief_v1.html)
-- [Denials RCI Brief (HTML)](docs/denials_rci_brief_v1.html)
+- [Denials Triage Brief (PDF)](docs/denials_triage_brief_v1.pdf)
+- [Denials Prevention Brief (PDF)](docs/denials_prevention_brief_v1.pdf)
+- [Denials Recovery Brief (PDF)](docs/denials_recovery_brief_v1.pdf)
+- [Denials RCI Brief (PDF)](docs/denials_rci_brief_v1.pdf)
 - [Proof Pack Index](docs/PROOF_PACK_INDEX.md)
 
 ## Operator Deep Dive
 - [Denials Triage Runbook (1 Page)](docs/denials_triage_runbook_1page.md)
 - [Denials Workqueue Tracker Template](docs/templates/denials_workqueue_tracker_template.md)
-- [RCI Ticket Pack (HTML)](docs/denials_rci_ticket_pack_v1.html)
+- [RCI Ticket Pack (PDF)](docs/denials_rci_ticket_pack_v1.pdf)
 - [RCI Ticket Template](docs/templates/denials_rci_ticket_template.md)
 
 ## Architecture (what this project demonstrates)
