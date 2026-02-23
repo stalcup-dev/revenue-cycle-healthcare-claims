@@ -38,30 +38,5 @@ Built with **dbt** + **BigQuery SQL** + **Tableau** using CMS DE-SynPUF syntheti
 
 ---
 
-## How to view in 60 seconds
-
-1) Executive artifact (NB-03)
-- Open: [docs/executive_summary.md](docs/executive_summary.md)
-- Images referenced inside the markdown:
-  - [docs/images/nb03_kpi_strip.png](docs/images/nb03_kpi_strip.png)
-  - [docs/images/nb03_trends_grid.png](docs/images/nb03_trends_grid.png)
-
-2) What this proves (exec-safe)
-- KPIs are sourced from marts only (DS0/DS1) and are complete-week safe.
-- The report includes a data stamp (anchor/comparator weeks + service timeline) and guardrails.
-
-3) Re-generate the artifact (optional)
-
-```bash
-python -m nbconvert --execute --to notebook --inplace notebooks/nb03_exec_overview_artifact.ipynb
-```
-
-## Acceptance Criteria
-- `README.md` contains this section verbatim.
-- No other files modified.
-
-### NB-05 - Workqueue Story (marts-only)
-- Notebook: [`notebooks/nb05_workqueue_story.ipynb`](notebooks/nb05_workqueue_story.ipynb)
-- Outputs: [`docs/workqueue_memo_latest_week.md`](docs/workqueue_memo_latest_week.md), [`docs/images/nb05_workqueue_top25.png`](docs/images/nb05_workqueue_top25.png)
-- Purpose: Decision-ready snapshot of top at-risk workqueue items (Top 25), generated from marts-only sources.
-- Data: DS3 required; DS0 optional.
+## Optional deep dives (if you want more)
+Notebook-driven executive and story artifacts (KPI + workqueue): [docs/NOTEBOOKS_INDEX.md](docs/NOTEBOOKS_INDEX.md)

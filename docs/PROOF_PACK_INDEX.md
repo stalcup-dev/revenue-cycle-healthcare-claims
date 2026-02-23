@@ -19,6 +19,9 @@
 - [Denials Workqueue Tracker Template](templates/denials_workqueue_tracker_template.md)
 - [RCI Ticket Template](templates/denials_rci_ticket_template.md)
 
+## Optional deep dives
+- Notebook-driven executive/story artifacts (KPI + workqueue): [docs/NOTEBOOKS_INDEX.md](NOTEBOOKS_INDEX.md)
+
 ## Determinism & QA
 - [Docs Audit Script](../scripts/docs_audit.py)
 - [Queue Brief QA Checklist](QA_CHECKLIST_QUEUE_BRIEF.md)
