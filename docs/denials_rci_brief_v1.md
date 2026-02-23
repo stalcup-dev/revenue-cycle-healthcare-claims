@@ -2,43 +2,49 @@
 
 ## Impact in 90 Seconds (RCI)
 - Week key: 2011-02-21
-- Total denied proxy exposure: $5,350
+- Total denied proxy exposure: $22,890
 - Top buckets: AUTH_ELIG, OTHER_PROXY
-- Top-2 concentration: 100.0% of weighted priority
+- Top-2 concentration: 98.3% of weighted priority
 - Use this for directional root-cause triage and evidence routing, not causal savings claims.
 
 ## Top buckets + what's driving them
-- AUTH_ELIG: denied $2,830, priority $2,830, rank 1.
-- OTHER_PROXY: denied $2,520, priority $1,512, rank 2.
-- CODING_DOC: denied $0, priority $0, rank 3.
+- AUTH_ELIG: denied $13,680, priority $13,680, rank 1.
+- OTHER_PROXY: denied $8,890, priority $5,334, rank 2.
+- CODING_DOC: denied $320, priority $320, rank 3.
 - DUPLICATE: denied $0, priority $0, rank 4.
 
 ## Top Patterns (within buckets)
 | denial_bucket | pattern_text | action_category | owner | denied_amount_sum | denial_count | share_within_bucket |
 |---|---|---|---|---:|---:|---:|
-| AUTH_ELIG | noncovered  /  c  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $2,530 | 50 | 89.4% |
-| AUTH_ELIG | noncovered  /  n  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $180 | 1 | 6.4% |
-| AUTH_ELIG | noncovered  /  o  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $120 | 2 | 4.2% |
-| OTHER_PROXY | other denial  /  o  /  specialist review | OTHER_ACTION | RCM analyst review | $1,580 | 72 | 62.7% |
-| OTHER_PROXY | allowed  /  c  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $510 | 15 | 20.2% |
-| OTHER_PROXY | allowed  /  o  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $200 | 31 | 7.9% |
-| OTHER_PROXY | other denial  /  c  /  specialist review | OTHER_ACTION | RCM analyst review | $180 | 4 | 7.1% |
-| OTHER_PROXY | allowed  /  n  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $50 | 5 | 2.0% |
-| CODING_DOC | medically unnecessary  /  n  /  documentation improvement | MEDICAL_RECORDS | Coding/CDI | $0 | 10 | 0.0% |
-| DUPLICATE | administrative  /    /  duplicate - exclude | DUPLICATE | Billing | $0 | 5 | 0.0% |
+| AUTH_ELIG | noncovered  /  c  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $12,820 | 218 | 93.7% |
+| AUTH_ELIG | noncovered  /  o  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $680 | 11 | 5.0% |
+| AUTH_ELIG | noncovered  /  n  /  coverage verification / abn workflow | ELIGIBILITY | Eligibility/Auth team | $180 | 1 | 1.3% |
+| OTHER_PROXY | other denial  /  o  /  specialist review | OTHER_ACTION | RCM analyst review | $6,120 | 299 | 68.8% |
+| OTHER_PROXY | allowed  /  c  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $1,270 | 52 | 14.3% |
+| OTHER_PROXY | allowed  /  o  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $960 | 150 | 10.8% |
+| OTHER_PROXY | other denial  /  c  /  specialist review | OTHER_ACTION | RCM analyst review | $400 | 8 | 4.5% |
+| OTHER_PROXY | allowed  /  n  /  none - claim allowed | CONTRACTUAL | Contracting/RCM lead | $70 | 26 | 0.8% |
+| CODING_DOC | medically unnecessary  /  n  /  documentation improvement | MEDICAL_RECORDS | Coding/CDI | $230 | 39 | 71.9% |
+| CODING_DOC | bundled / no pay  /  z  /  modifier / bundling guardrails | CODING_MODIFIER | Coding/CDI | $90 | 2 | 28.1% |
+| CODING_DOC | medically unnecessary  /  o  /  documentation improvement | MEDICAL_RECORDS | Coding/CDI | $0 | 3 | 0.0% |
+| DUPLICATE | administrative  /    /  duplicate - exclude | DUPLICATE | Billing | $0 | 38 | 0.0% |
+| DUPLICATE | administrative  /  c  /  duplicate - exclude | DUPLICATE | Billing | $0 | 1 | 0.0% |
+| DUPLICATE | administrative  /  o  /  duplicate - exclude | DUPLICATE | Billing | $0 | 1 | 0.0% |
 
 ## Action categories + owners
 | action_category | owner | denied_amount_sum | pattern_count |
 |---|---|---:|---:|
-| ELIGIBILITY | Eligibility/Auth team | $2,830 | 3 |
-| OTHER_ACTION | RCM analyst review | $1,760 | 2 |
-| CONTRACTUAL | Contracting/RCM lead | $760 | 3 |
-| DUPLICATE | Billing | $0 | 1 |
-| MEDICAL_RECORDS | Coding/CDI | $0 | 1 |
+| ELIGIBILITY | Eligibility/Auth team | $13,680 | 3 |
+| OTHER_ACTION | RCM analyst review | $6,520 | 2 |
+| CONTRACTUAL | Contracting/RCM lead | $2,300 | 3 |
+| MEDICAL_RECORDS | Coding/CDI | $230 | 2 |
+| CODING_MODIFIER | Coding/CDI | $90 | 1 |
+| DUPLICATE | Billing | $0 | 3 |
 
 ## Evidence checklist
 | action_category | evidence_checklist |
 |---|---|
+| CODING_MODIFIER | coded claim detail; coding notes |
 | CONTRACTUAL | contract clause excerpt; allowed schedule |
 | DUPLICATE | claim history; duplicate match proof |
 | ELIGIBILITY | eligibility response; coverage verification timestamp |

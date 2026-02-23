@@ -3,17 +3,17 @@
 Source relation: `rcm-flagship.rcm.mart_workqueue_claims` (dbt-transformed mart only).
 
 ## Decision
-Focus this week on the top 2 denial buckets by priority score (covers 89.0% of weighted denial exposure).
+Focus this week on the top 2 denial buckets by priority score (covers 91.1% of weighted denial exposure).
 
 ## Status + Reason
 - Status: LIMITED_CONTEXT
 - Reason: Payer identity is unavailable in marts; denial reason and denied dollar values are proxy-derived for directional triage.
 
 ## Top drivers (priority-ranked)
-- `AUTH_ELIG` / `Noncovered`: $17,600 across 310 claims (priority $17,600).
-- `OTHER_PROXY` / `Other Denial`: $10,790 across 471 claims (priority $6,474).
-- `OTHER_PROXY` / `Allowed`: $4,120 across 5716 claims (priority $2,472).
-- `CODING_DOC` / `Medically Unnecessary`: $330 across 70 claims (priority $330).
+- `AUTH_ELIG` / `Noncovered`: $13,680 across 230 claims (priority $13,680).
+- `OTHER_PROXY` / `Other Denial`: $6,550 across 309 claims (priority $3,930).
+- `OTHER_PROXY` / `Allowed`: $2,300 across 3790 claims (priority $1,380).
+- `CODING_DOC` / `Medically Unnecessary`: $230 across 42 claims (priority $230).
 - `CODING_DOC` / `Bundled / No Pay`: $90 across 2 claims (priority $90).
 
 ## This week actions (reversible)
@@ -27,14 +27,14 @@ Focus this week on the top 2 denial buckets by priority score (covers 89.0% of w
 - Eligibility/Auth team: 25 claims in the top 25.
 
 ## Stability (Current vs Prior dataset-week)
-- Current dataset-week: `2011-02-07`
-- Prior dataset-week: `2011-01-31`
+- Current dataset-week: `2011-02-21`
+- Prior dataset-week: `2011-02-14`
 
 | denial_bucket | current_rank | prior_rank | rank_delta | current_share | prior_share | share_delta | delta_priority_score |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| AUTH_ELIG | 1 | 1 | 0 | 65.1% | 63.7% | 1.3% | $-2,950 |
-| OTHER_PROXY | 2 | 2 | 0 | 33.4% | 35.1% | -1.7% | $-2,280 |
-| CODING_DOC | 3 | 3 | 0 | 1.6% | 1.1% | 0.5% | $70 |
+| AUTH_ELIG | 1 | 1 | 0 | 70.8% | 61.0% | 9.8% | $-5,640 |
+| OTHER_PROXY | 2 | 2 | 0 | 27.6% | 37.7% | -10.2% | $-6,624 |
+| CODING_DOC | 3 | 3 | 0 | 1.7% | 1.2% | 0.5% | $-50 |
 | DUPLICATE | 4 | 4 | 0 | 0.0% | 0.1% | -0.1% | $-30 |
 
 ## Falsification
