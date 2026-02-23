@@ -1,36 +1,36 @@
 # Denials Recovery Opportunity Brief v1
 
 - **Source relation:** `rcm-flagship.rcm.mart_workqueue_claims` (dbt mart only)
-- **Anchoring:** `DATASET_MAX_WEEK` | current `2011-02-14` | prior `2011-02-07`
+- **Anchoring:** `DATASET_MAX_WEEK` | current `2011-02-21` | prior `2011-02-14`
 
 ## Decision
 - Focus this week on top 2 denial buckets by recovery priority score.
-- Top 2 buckets represent **89.5%** of current weighted exposure.
+- Top 2 buckets represent **91.1%** of current weighted exposure.
 
 ## Status + Reason
 - **Status:** LIMITED_CONTEXT
 - **Reason:** Ranking is directional and proxy-based; payer identity, true service dates, and CARC/RARC are not available in this mart layer.
 
 ## Recovery focus this week (top drivers)
-- AUTH_ELIG / Noncovered: $2,830 weighted $1,415 (53 claims)
-- OTHER_PROXY / Other Denial: $1,760 weighted $528 (77 claims)
-- OTHER_PROXY / Allowed: $760 weighted $228 (925 claims)
-- CODING_DOC / Medically Unnecessary: $0 weighted $0 (10 claims)
-- DUPLICATE / Administrative: $0 weighted $0 (5 claims)
+- AUTH_ELIG / Noncovered: $13,680 weighted $6,840 (230 claims)
+- OTHER_PROXY / Other Denial: $6,550 weighted $1,965 (309 claims)
+- OTHER_PROXY / Allowed: $2,300 weighted $690 (3790 claims)
+- CODING_DOC / Medically Unnecessary: $230 weighted $115 (42 claims)
+- CODING_DOC / Bundled / No Pay: $90 weighted $45 (2 claims)
 
 ## Aging bands
 | aging_band | denial_count | denied_amount_sum | priority_score_sum | priority_share |
 |---|---:|---:|---:|---:|
-| >90 | 1089 | $5,350 | $2,171 | 100.0% |
+| >90 | 4489 | $22,890 | $9,667 | 100.0% |
 
 ## Stability (Current vs Prior)
 - Top2 overlap: **2/2** buckets
 | denial_bucket | current_rank | prior_rank | rank_delta | current_share | prior_share | share_delta | delta_priority_score |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| AUTH_ELIG | 1 | 1 | 0 | 65.2% | 64.9% | 0.2% | $-9,465 |
-| OTHER_PROXY | 2 | 2 | 0 | 34.8% | 33.3% | 1.6% | $-4,818 |
-| CODING_DOC | 3 | 3 | 0 | 0.0% | 1.7% | -1.7% | $-285 |
-| DUPLICATE | 3 | 4 | 1 | 0.0% | 0.1% | -0.1% | $-15 |
+| AUTH_ELIG | 1 | 1 | 0 | 70.8% | 61.0% | 9.8% | $-2,820 |
+| OTHER_PROXY | 2 | 2 | 0 | 27.6% | 37.7% | -10.2% | $-3,312 |
+| CODING_DOC | 3 | 3 | 0 | 1.7% | 1.2% | 0.5% | $-25 |
+| DUPLICATE | 4 | 4 | 0 | 0.0% | 0.1% | -0.1% | $-15 |
 
 ## Workqueue routing
 - Workqueue size: **25** claims
