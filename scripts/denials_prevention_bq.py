@@ -394,7 +394,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run-sql", action="store_true")
     parser.add_argument("--write-html", dest="write_html", action="store_true", default=True)
     parser.add_argument("--no-write-html", dest="write_html", action="store_false")
-    parser.add_argument("--write-teaching-html", dest="write_teaching_html", action="store_true", default=True)
+    parser.add_argument(
+        "--write-teaching-html",
+        dest="write_teaching_html",
+        action="store_true",
+        default=True,
+        help="Write non-public HTML memo under exports/private/.",
+    )
     parser.add_argument("--no-write-teaching-html", dest="write_teaching_html", action="store_false")
     parser.add_argument("--determinism-check", action="store_true")
     return parser.parse_args()
@@ -420,6 +426,8 @@ def main() -> int:
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
+    private_dir = out_dir / "private"
+    private_dir.mkdir(parents=True, exist_ok=True)
     docs_dir = Path("docs")
     docs_dir.mkdir(parents=True, exist_ok=True)
 
@@ -467,7 +475,7 @@ def main() -> int:
     summary_path = out_dir / "denials_prevention_summary_v1.csv"
     md_path = docs_dir / "denials_prevention_brief_v1.md"
     html_path = docs_dir / "denials_prevention_brief_v1.html"
-    teaching_html_path = out_dir / "denials_prevention_brief_v1_teaching.html"
+    teaching_html_path = private_dir / "denials_prevention_brief_v1_teaching.html"
 
     summary_df.to_csv(summary_path, index=False)
     md_text = _build_brief_markdown(source_fqn, summary_df, scenarios_df, current_week, prior_week if prior_week else "NONE", top2_overlap, workqueue_size_used)
@@ -514,6 +522,8 @@ def main() -> int:
         print(f"WROTE={html_path}")
     if args.write_teaching_html:
         print(f"WROTE={teaching_html_path}")
+    print(f"PRIVATE_ARTIFACT_PATH={(Path(args.out) / 'private' / 'denials_prevention_brief_v1_teaching.html').as_posix()}")
+    print("PRIVATE_ARTIFACT_TRACKED=FALSE")
     return 0
 
 
