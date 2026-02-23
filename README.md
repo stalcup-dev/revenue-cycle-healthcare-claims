@@ -16,10 +16,11 @@ No Tableau required.
 
 - [Project Status and Next Steps](docs/PROJECT_STATUS_AND_NEXT_STEPS.md)
 - [Executive System Overview](docs/EXECUTIVE_SYSTEM_OVERVIEW.md)
-- [Denials Triage Brief (PDF)](docs/denials_triage_brief_v1.pdf)
-- [Denials Prevention Brief (PDF)](docs/denials_prevention_brief_v1.pdf)
-- [Denials Recovery Brief (PDF)](docs/denials_recovery_brief_v1.pdf)
-- [Denials RCI Brief (PDF)](docs/denials_rci_brief_v1.pdf)
+- [Executive PDF Pack Index](docs/pdf/EXECUTIVE_PDF_PACK_INDEX.md)
+- [Denials Triage Brief (PDF)](docs/pdf/denials_triage_brief_v1.pdf) | [HTML](docs/denials_triage_brief_v1.html)
+- [Denials Prevention Brief (PDF)](docs/pdf/denials_prevention_brief_v1.pdf) | [HTML](docs/denials_prevention_brief_v1.html)
+- [Denials Recovery Brief (PDF)](docs/pdf/denials_recovery_brief_v1.pdf) | [HTML](docs/denials_recovery_brief_v1.html)
+- [Denials RCI Brief (PDF)](docs/pdf/denials_rci_brief_v1.pdf) | [HTML](docs/denials_rci_brief_v1.html)
 - [Proof Pack Index](docs/PROOF_PACK_INDEX.md)
 
 ## Operator Deep Dive

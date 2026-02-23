@@ -6,10 +6,11 @@
 - [Executive Summary](executive_summary.md)
 
 ## Briefs
-- [Denials Triage Brief (HTML)](denials_triage_brief_v1.html)
-- [Denials Prevention Brief (HTML)](denials_prevention_brief_v1.html)
-- [Denials Recovery Brief (HTML)](denials_recovery_brief_v1.html)
-- [Denials RCI Brief (HTML)](denials_rci_brief_v1.html)
+- [Executive PDF Pack Index](pdf/EXECUTIVE_PDF_PACK_INDEX.md)
+- [Denials Triage Brief (PDF)](pdf/denials_triage_brief_v1.pdf) | [HTML](denials_triage_brief_v1.html)
+- [Denials Prevention Brief (PDF)](pdf/denials_prevention_brief_v1.pdf) | [HTML](denials_prevention_brief_v1.html)
+- [Denials Recovery Brief (PDF)](pdf/denials_recovery_brief_v1.pdf) | [HTML](denials_recovery_brief_v1.html)
+- [Denials RCI Brief (PDF)](pdf/denials_rci_brief_v1.pdf) | [HTML](denials_rci_brief_v1.html)
 - [RCI Ticket Pack (HTML)](denials_rci_ticket_pack_v1.html)
 
 ## Runbooks & Templates
