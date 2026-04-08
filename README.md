@@ -11,16 +11,18 @@
 
 **Quick Links:** [View Dashboard](docs/images/tab1.png) | [STAR Impact](portfolio/STAR_IMPACT_SUMMARY.md) | [Setup Guide](docs/REPRO_STEPS.md) | [Metric Definitions](docs/01_metric_definitions.md)
 
+![Tab 1 Executive KPI Dashboard](docs/images/tab1.png)
+
 ## Start Here (Hiring Manager)
 No Tableau required.
 
 - [Project Status and Next Steps](docs/PROJECT_STATUS_AND_NEXT_STEPS.md)
 - [Executive System Overview](docs/EXECUTIVE_SYSTEM_OVERVIEW.md)
 - [Executive PDF Pack Index](docs/pdf/EXECUTIVE_PDF_PACK_INDEX.md)
-- [Denials Triage Brief (PDF)](docs/pdf/denials_triage_brief_v1.pdf) | [HTML](docs/denials_triage_brief_v1.html)
-- [Denials Prevention Brief (PDF)](docs/pdf/denials_prevention_brief_v1.pdf) | [HTML](docs/denials_prevention_brief_v1.html)
-- [Denials Recovery Brief (PDF)](docs/pdf/denials_recovery_brief_v1.pdf) | [HTML](docs/denials_recovery_brief_v1.html)
-- [Denials RCI Brief (PDF)](docs/pdf/denials_rci_brief_v1.pdf) | [HTML](docs/denials_rci_brief_v1.html)
+- [Denials Triage Brief (PDF)](docs/pdf/denials_triage_brief_v1.pdf)
+- [Denials Prevention Brief (PDF)](docs/pdf/denials_prevention_brief_v1.pdf)
+- [Denials Recovery Brief (PDF)](docs/pdf/denials_recovery_brief_v1.pdf)
+- [Denials RCI Brief (PDF)](docs/pdf/denials_rci_brief_v1.pdf)
 - [Proof Pack Index](docs/PROOF_PACK_INDEX.md)
 
 ## Operator Deep Dive
